@@ -1,54 +1,148 @@
-# React + TypeScript + Vite
+# Rashidiya Dashboard
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+## 📌 Overview
+Rashidiya Dashboard is a fullstack web application built with:
+- **Frontend**: React + Vite@6.5.0 + TailwindCSS + TypeScript  
+- **Backend**: NestJS + Prisma + PostgreSQL + TypeScript  
 
-Currently, two official plugins are available:
+The project is structured to ensure scalability, modularity, and ease of development.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+---
 
-## Expanding the ESLint configuration
+## 🛠️ Tech Stack
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+### Frontend
+- ⚛️ React 18  
+- ⚡ Vite 6.5.0  
+- 🎨 TailwindCSS  
+- 📝 TypeScript  
 
-```js
-export default tseslint.config({
-  extends: [
-    // Remove ...tseslint.configs.recommended and replace with this
-    ...tseslint.configs.recommendedTypeChecked,
-    // Alternatively, use this for stricter rules
-    ...tseslint.configs.strictTypeChecked,
-    // Optionally, add this for stylistic rules
-    ...tseslint.configs.stylisticTypeChecked,
-  ],
-  languageOptions: {
-    // other options...
-    parserOptions: {
-      project: ['./tsconfig.node.json', './tsconfig.app.json'],
-      tsconfigRootDir: import.meta.dirname,
-    },
-  },
-})
+### Backend
+- 🚀 NestJS  
+- 🗂️ Prisma  
+- 🐘 PostgreSQL  
+- 📝 TypeScript  
+
+---
+
+## 📂 Project Structure
+```
+rashidiya-dashboard/
+│── frontend/     # React + Vite + Tailwind + TS
+│── backend/      # NestJS + Prisma + PostgreSQL
+│── docker/       # Docker configs (optional)
+│── README.md     # Project documentation
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+---
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+## ⚙️ Setup Instructions
 
-export default tseslint.config({
-  plugins: {
-    // Add the react-x and react-dom plugins
-    'react-x': reactX,
-    'react-dom': reactDom,
-  },
-  rules: {
-    // other rules...
-    // Enable its recommended typescript rules
-    ...reactX.configs['recommended-typescript'].rules,
-    ...reactDom.configs.recommended.rules,
-  },
-})
+### 1. Clone Repository
+```bash
+git clone https://github.com/Mohammad-Obidat/rashidiya-dashboard.git
+cd rashidiya-dashboard
 ```
+
+---
+
+### 2. Backend Setup (NestJS + Prisma + PostgreSQL)
+
+#### Install dependencies
+```bash
+cd backend
+npm install
+```
+
+#### Configure environment
+Create a `.env` file inside `backend/`:
+```env
+DATABASE_URL="postgresql://USER:PASSWORD@localhost:5432/yourdb?schema=public"
+PORT=5000
+```
+
+#### Run migrations
+```bash
+npx prisma migrate dev
+```
+
+#### Start backend
+```bash
+npm run start:dev
+```
+Backend runs on **http://localhost:5000**
+
+---
+
+### 3. Frontend Setup (React + Vite + Tailwind + TS)
+
+#### Install dependencies
+```bash
+cd frontend
+npm install
+```
+
+#### Configure environment
+Create a `.env` file inside `frontend/`:
+```env
+VITE_API_URL=http://localhost:5000
+```
+
+#### Start frontend
+```bash
+npm run dev
+```
+Frontend runs on **http://localhost:5173**
+
+---
+
+## 🐳 Docker Setup (Optional)
+You can run both frontend & backend using Docker.
+
+```bash
+docker-compose up --build
+```
+
+---
+
+## 📜 Scripts
+
+### Backend
+- `npm run start:dev` → Run backend in dev mode  
+- `npm run build` → Build backend  
+- `npx prisma studio` → Open Prisma Studio (DB GUI)  
+
+### Frontend
+- `npm run dev` → Run frontend in dev mode  
+- `npm run build` → Build frontend  
+- `npm run preview` → Preview production build  
+
+---
+
+## ✅ Features
+- Fullstack TypeScript  
+- API with NestJS (REST/GraphQL ready)  
+- Database with Prisma ORM  
+- PostgreSQL for relational data storage  
+- Vite + Tailwind for fast frontend development  
+- Environment variable support  
+
+---
+
+## 🚀 Deployment
+- **Frontend**: Deploy to Vercel, Netlify, or static hosting.  
+- **Backend**: Deploy to Heroku, Railway, AWS, or Docker containers.  
+- **Database**: Use managed PostgreSQL (e.g., Supabase, Railway, Neon).  
+
+---
+
+## 🤝 Contributing
+1. Fork the repo  
+2. Create a new branch (`feature/your-feature`)  
+3. Commit changes  
+4. Push and create a Pull Request  
+
+---
+
+## 📄 License
+This project is licensed under the **MIT License**.
