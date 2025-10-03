@@ -1,0 +1,62 @@
+version: "3.9"
+services:
+  db:
+    image: postgres:15
+    container_name: rashidiya_postgres
+    restart: always
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: rashidiya
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: rashidiya_db
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  pgadmin:
+    image: dpage/pgadmin4
+    container_name: rashidiya_pgadmin
+    restart: always
+    ports:
+      - "5050:80"
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@admin.com
+      PGADMIN_DEFAULT_PASSWORD: admin
+    depends_on:
+      - db
+
+  prisma-studio:
+    image: node:18
+    working_dir: /app
+    command: sh -c "npm install -g prisma && npx prisma studio --port 5555"
+    volumes:
+      - ./backend:/app
+    ports:
+      - "5555:5555"
+    depends_on:
+      - db
+
+  nestjs:
+    build: ./backend
+    container_name: rashidiya_backend
+    ports:
+      - "3000:3000"
+    env_file:
+      - ./backend/.env
+    depends_on:
+      - db
+
+  frontend:
+    build: ./frontend
+    container_name: rashidiya_frontend
+    ports:
+      - "5173:5173"
+    stdin_open: true
+    tty: true
+    depends_on:
+      - nestjs
+
+volumes:
+  postgres_data:
+
+# docker compose up --build
