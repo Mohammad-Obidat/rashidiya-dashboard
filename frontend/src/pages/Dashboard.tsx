@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import ProgramCard from '../components/ProgramCard';
 import Button from '../components/common/Button.tsx';
@@ -6,6 +6,7 @@ import Input from '../components/common/Input.tsx';
 import Modal from '../components/common/Modal.tsx';
 import type { IProgram } from '../types/program.ts';
 import { ProgramType, ProgramStatus } from '../types/program.ts';
+import { api } from '../lib/apiClient';
 
 const Dashboard: React.FC = () => {
   const navigate = useNavigate();
@@ -14,108 +15,26 @@ const Dashboard: React.FC = () => {
   const [filterStatus, setFilterStatus] = useState<string>('all');
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [programToDelete, setProgramToDelete] = useState<string | null>(null);
+  const [programs, setPrograms] = useState<IProgram[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
 
-  // بيانات تجريبية للبرامج
-  const [programs, setPrograms] = useState<IProgram[]>([
-    {
-      id: '1',
-      name: 'نادي الروبوت',
-      type: ProgramType.SCIENTIFIC,
-      description:
-        'برنامج تعليمي لتطوير مهارات البرمجة والروبوتات للطلاب المهتمين بالتكنولوجيا',
-      status: ProgramStatus.ACTIVE,
-      createdDate: new Date('2024-01-15'),
-      currentAdvisor: {
-        id: 'a1',
-        name: 'أحمد محمد',
-        phone: '0501234567',
-        email: 'ahmed@school.edu.sa',
-      },
-      students: [
-        {
-          id: 's1',
-          name: 'محمد علي',
-          studentNumber: '12345',
-          grade: 'الثالث المتوسط',
-          section: 'أ',
-          joinDate: new Date('2024-02-01'),
-        },
-      ],
-    },
-    {
-      id: '2',
-      name: 'فريق كرة القدم',
-      type: ProgramType.SPORTS,
-      description:
-        'فريق كرة القدم المدرسي للمشاركة في البطولات المحلية والإقليمية',
-      status: ProgramStatus.ACTIVE,
-      createdDate: new Date('2023-09-01'),
-      currentAdvisor: {
-        id: 'a2',
-        name: 'خالد السعيد',
-        phone: '0509876543',
-        email: 'khaled@school.edu.sa',
-      },
-      students: [
-        {
-          id: 's1',
-          name: 'محمد علي',
-          studentNumber: '12345',
-          grade: 'الثالث المتوسط',
-          section: 'أ',
-          joinDate: new Date('2024-02-01'),
-        },
-        {
-          id: 's3',
-          name: 'محمد علي',
-          studentNumber: '12345',
-          grade: 'الثالث المتوسط',
-          section: 'أ',
-          joinDate: new Date('2024-02-01'),
-        },
-      ],
-    },
-    {
-      id: '3',
-      name: 'نادي الفنون',
-      type: ProgramType.ARTISTIC,
-      description: 'برنامج لتطوير المواهب الفنية في الرسم والخط والتصميم',
-      status: ProgramStatus.INACTIVE,
-      createdDate: new Date('2024-03-10'),
-      currentAdvisor: {
-        id: 'a2',
-        name: 'خالد السعيد',
-        phone: '0509876543',
-        email: 'khaled@school.edu.sa',
-      },
-      students: [
-        {
-          id: 's1',
-          name: 'محمد علي',
-          studentNumber: '12345',
-          grade: 'الثالث المتوسط',
-          section: 'أ',
-          joinDate: new Date('2024-02-01'),
-        },
-        {
-          id: 's2',
-          name: 'محمد علي',
-          studentNumber: '12345',
-          grade: 'الثالث المتوسط',
-          section: 'أ',
-          joinDate: new Date('2024-02-01'),
-        },
-        {
-          id: 's22',
-          name: 'محمد علي',
-          studentNumber: '12345',
-          grade: 'الثالث المتوسط',
-          section: 'أ',
-          joinDate: new Date('2024-02-01'),
-        },
-      ],
-    },
-  ]);
+  useEffect(() => {
+    const fetchPrograms = async () => {
+      try {
+        setLoading(true);
+        const fetchedPrograms = await api.programs.list();
+        setPrograms(fetchedPrograms);
+      } catch (err) {
+        console.error('Failed to fetch programs:', err);
+        setError('Failed to load programs.');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchPrograms();
+  }, []);
 
   // تصفية البرامج
   const filteredPrograms = programs.filter((program) => {
@@ -142,17 +61,31 @@ const Dashboard: React.FC = () => {
     setDeleteModalOpen(true);
   };
 
-  const handleDeleteConfirm = () => {
+  const handleDeleteConfirm = async () => {
     if (programToDelete) {
-      setPrograms(programs.filter((p) => p.id !== programToDelete));
-      setDeleteModalOpen(false);
-      setProgramToDelete(null);
+      try {
+        await api.programs.remove(programToDelete);
+        setPrograms(programs.filter((p) => p.id !== programToDelete));
+        setDeleteModalOpen(false);
+        setProgramToDelete(null);
+      } catch (err) {
+        console.error('Failed to delete program:', err);
+        setError('Failed to delete program. Please try again.');
+      }
     }
   };
 
   const handleAddProgram = () => {
     navigate('/program/new');
   };
+
+  if (loading) {
+    return <div className='text-center py-8'>جاري تحميل البرامج...</div>;
+  }
+
+  if (error) {
+    return <div className='text-center py-8 text-red-600'>{error}</div>;
+  }
 
   return (
     <>

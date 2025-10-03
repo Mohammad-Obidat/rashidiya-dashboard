@@ -1,39 +1,38 @@
-export const ProgramType = {
-  SPORTS: 'رياضية',
-  CULTURAL: 'ثقافية',
-  SCIENTIFIC: 'علمية',
-  ARTISTIC: 'فنية',
-  SOCIAL: 'اجتماعية',
-  RELIGIOUS: 'دينية',
-  OTHER: 'أخرى',
-} as const;
+import {
+  ProgramType as PrismaProgramType,
+  ProgramStatus as PrismaProgramStatus,
+  AttendanceStatus as PrismaAttendanceStatus,
+  Gender,
+  RecurrencePattern,
+} from '@prisma/client';
 
-export type ProgramType = (typeof ProgramType)[keyof typeof ProgramType];
+export const ProgramType = PrismaProgramType;
+export type ProgramType = PrismaProgramType;
 
-export const ProgramStatus = {
-  ACTIVE: 'نشط',
-  INACTIVE: 'غير نشط',
-  ARCHIVED: 'مؤرشف',
-} as const;
+export const ProgramStatus = PrismaProgramStatus;
+export type ProgramStatus = PrismaProgramStatus;
 
-export type ProgramStatus = (typeof ProgramStatus)[keyof typeof ProgramStatus];
+export const AttendanceStatus = PrismaAttendanceStatus;
+export type AttendanceStatus = PrismaAttendanceStatus;
 
-export const AttendanceStatus = {
-  PRESENT: 'حاضر',
-  ABSENT: 'غائب',
-  EXCUSED: 'غياب بعذر',
-  LATE: 'متأخر',
-} as const;
-
-export type AttendanceStatus =
-  (typeof AttendanceStatus)[keyof typeof AttendanceStatus];
+export type GenderType = Gender;
+export type RecurrencePatternType = RecurrencePattern;
 
 export interface IAdvisor {
   id: string;
   name: string;
   phone: string;
   email: string;
-  assignedDate?: Date;
+  // assignedDate will be part of AdvisorAssignment, not Advisor directly
+}
+
+export interface IAdvisorAssignment {
+  id: string;
+  advisorId: string;
+  programId: string;
+  assignedDate: Date;
+  endDate?: Date;
+  advisor: IAdvisor;
 }
 
 export interface IStudent {
@@ -42,16 +41,32 @@ export interface IStudent {
   studentNumber: string;
   grade: string;
   section: string;
+  gender?: GenderType;
+  birthDate?: Date;
+  phone?: string;
+  address?: string;
+  joinDate?: Date; // This is part of StudentProgram, not Student directly
+}
+
+export interface IStudentProgram {
+  id: string;
+  studentId: string;
+  programId: string;
   joinDate: Date;
+  student: IStudent;
 }
 
 export interface IAttendanceRecord {
   id: string;
   studentId: string;
   sessionId: string;
+  programId: string;
   date: Date;
   status: AttendanceStatus;
   notes?: string;
+  student?: IStudent;
+  session?: ISession;
+  program?: IProgram;
 }
 
 export interface ISession {
@@ -62,8 +77,10 @@ export interface ISession {
   endTime: string;
   location: string;
   isRecurring: boolean;
-  recurrencePattern?: 'daily' | 'weekly' | 'monthly';
+  recurrencePattern?: RecurrencePatternType;
   notes?: string;
+  program?: IProgram;
+  attendanceRecords?: IAttendanceRecord[];
 }
 
 export interface IProgram {
@@ -73,9 +90,12 @@ export interface IProgram {
   description: string;
   status: ProgramStatus;
   createdDate: Date;
+  createdAt: Date;
+  updatedAt: Date;
+  currentAdvisorId?: string;
   currentAdvisor?: IAdvisor;
-  advisorHistory?: IAdvisor[];
-  students?: IStudent[];
+  advisorHistory?: IAdvisorAssignment[];
+  students?: IStudentProgram[];
   sessions?: ISession[];
   attendanceRecords?: IAttendanceRecord[];
 }
@@ -85,4 +105,5 @@ export interface IProgramFormData {
   type: ProgramType;
   description: string;
   status: ProgramStatus;
+  currentAdvisorId?: string;
 }

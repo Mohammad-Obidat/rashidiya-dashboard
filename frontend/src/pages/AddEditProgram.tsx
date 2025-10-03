@@ -4,6 +4,7 @@ import Button from '../components/common/Button';
 import { ArrowRight, Save, X } from 'lucide-react';
 import { ProgramType, ProgramStatus } from '../types/program';
 import type { IProgramFormData } from '../types/program';
+import { api } from '../lib/apiClient';
 
 const AddEditProgram: React.FC = () => {
   const navigate = useNavigate();
@@ -19,19 +20,34 @@ const AddEditProgram: React.FC = () => {
 
   const [errors, setErrors] = useState<Partial<IProgramFormData>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (isEditMode && id) {
-      // في التطبيق الحقيقي، سيتم جلب بيانات البرنامج من الخادم
-      // هنا نستخدم بيانات تجريبية
-      setFormData({
-        name: 'نادي الروبوت',
-        type: ProgramType.SCIENTIFIC,
-        description:
-          'برنامج تعليمي لتطوير مهارات البرمجة والروبوتات للطلاب المهتمين بالتكنولوجيا',
-        status: ProgramStatus.ACTIVE,
-      });
-    }
+    const fetchProgramData = async () => {
+      if (isEditMode && id) {
+        try {
+          setLoading(true);
+          const programData = await api.programs.get(id);
+          setFormData({
+            name: programData.name,
+            type: programData.type,
+            description: programData.description,
+            status: programData.status,
+            currentAdvisorId: programData.currentAdvisorId || undefined,
+          });
+        } catch (err) {
+          console.error('Failed to fetch program for edit:', err);
+          setError('Failed to load program data for editing.');
+        } finally {
+          setLoading(false);
+        }
+      } else {
+        setLoading(false);
+      }
+    };
+
+    fetchProgramData();
   }, [id, isEditMode]);
 
   const validateForm = (): boolean => {
@@ -57,12 +73,21 @@ const AddEditProgram: React.FC = () => {
     }
 
     setIsSubmitting(true);
+    setError(null);
 
-    // محاكاة عملية الحفظ
-    setTimeout(() => {
-      console.log('حفظ البرنامج:', formData);
-      navigate('/');
-    }, 1500);
+    try {
+      if (isEditMode && id) {
+        await api.programs.update(id, formData);
+      } else {
+        await api.programs.create(formData);
+      }
+      navigate('/'); // Redirect to programs list or details page
+    } catch (err) {
+      console.error('Failed to save program:', err);
+      setError('فشل في حفظ البرنامج. يرجى المحاولة مرة أخرى.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleCancel = () => {
@@ -71,14 +96,23 @@ const AddEditProgram: React.FC = () => {
 
   const handleChange = (
     field: keyof IProgramFormData,
-    value: string | ProgramType | ProgramStatus
+    value: string | ProgramType | ProgramStatus | undefined
   ) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
-    // مسح الخطأ عند التعديل
     if (errors[field]) {
       setErrors((prev) => ({ ...prev, [field]: undefined }));
     }
   };
+
+  if (loading) {
+    return (
+      <div className='text-center py-8'>جاري تحميل بيانات البرنامج...</div>
+    );
+  }
+
+  if (error) {
+    return <div className='text-center py-8 text-red-600'>{error}</div>;
+  }
 
   return (
     <div className='min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50'>

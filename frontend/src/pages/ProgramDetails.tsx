@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import Button from '../components/common/Button';
 import Modal from '../components/common/Modal';
@@ -20,113 +20,45 @@ import {
   XCircle,
   AlertCircle,
 } from 'lucide-react';
-import type { IProgram } from '../types/program';
-import { ProgramType, ProgramStatus, AttendanceStatus } from '../types/program';
+import {
+  IProgram,
+  ProgramType,
+  ProgramStatus,
+  AttendanceStatus,
+} from '../types/program';
+import { api } from '../lib/apiClient';
 
 const ProgramDetails: React.FC = () => {
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
+  const [program, setProgram] = useState<IProgram | null>(null);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<
     'advisor' | 'students' | 'attendance' | 'schedule'
   >('advisor');
 
-  // بيانات تجريبية
-  const [program] = useState<IProgram>({
-    id: '1',
-    name: 'نادي الروبوت',
-    type: ProgramType.SCIENTIFIC,
-    description:
-      'برنامج تعليمي لتطوير مهارات البرمجة والروبوتات للطلاب المهتمين بالتكنولوجيا',
-    status: ProgramStatus.ACTIVE,
-    createdDate: new Date('2024-01-15'),
-    currentAdvisor: {
-      id: 'a1',
-      name: 'أحمد محمد السعيد',
-      phone: '0501234567',
-      email: 'ahmed@school.edu.sa',
-      assignedDate: new Date('2024-01-15'),
-    },
-    advisorHistory: [
-      {
-        id: 'a0',
-        name: 'خالد عبدالله',
-        phone: '0509876543',
-        email: 'khaled@school.edu.sa',
-        assignedDate: new Date('2023-09-01'),
-      },
-    ],
-    students: [
-      {
-        id: 's1',
-        name: 'محمد علي أحمد',
-        studentNumber: '12345',
-        grade: 'الثالث المتوسط',
-        section: 'أ',
-        joinDate: new Date('2024-02-01'),
-      },
-      {
-        id: 's2',
-        name: 'عبدالله سعد محمد',
-        studentNumber: '12346',
-        grade: 'الثاني المتوسط',
-        section: 'ب',
-        joinDate: new Date('2024-02-05'),
-      },
-      {
-        id: 's3',
-        name: 'فيصل خالد عبدالرحمن',
-        studentNumber: '12347',
-        grade: 'الثالث المتوسط',
-        section: 'أ',
-        joinDate: new Date('2024-02-10'),
-      },
-    ],
-    sessions: [
-      {
-        id: 'sess1',
-        programId: '1',
-        date: new Date('2024-10-05'),
-        startTime: '14:00',
-        endTime: '16:00',
-        location: 'مختبر الحاسب',
-        isRecurring: true,
-        recurrencePattern: 'weekly',
-      },
-      {
-        id: 'sess2',
-        programId: '1',
-        date: new Date('2024-10-12'),
-        startTime: '14:00',
-        endTime: '16:00',
-        location: 'مختبر الحاسب',
-        isRecurring: true,
-        recurrencePattern: 'weekly',
-      },
-    ],
-    attendanceRecords: [
-      {
-        id: 'att1',
-        studentId: 's1',
-        sessionId: 'sess1',
-        date: new Date('2024-10-05'),
-        status: AttendanceStatus.PRESENT,
-      },
-      {
-        id: 'att2',
-        studentId: 's2',
-        sessionId: 'sess1',
-        date: new Date('2024-10-05'),
-        status: AttendanceStatus.ABSENT,
-      },
-      {
-        id: 'att3',
-        studentId: 's3',
-        sessionId: 'sess1',
-        date: new Date('2024-10-05'),
-        status: AttendanceStatus.LATE,
-      },
-    ],
-  });
+  useEffect(() => {
+    const fetchProgram = async () => {
+      if (!id) {
+        setError('Program ID is missing');
+        setLoading(false);
+        return;
+      }
+      try {
+        setLoading(true);
+        const fetchedProgram = await api.programs.get(id);
+        setProgram(fetchedProgram);
+      } catch (err) {
+        console.error('Failed to fetch program:', err);
+        setError('Failed to load program details.');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProgram();
+  }, [id]);
 
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [itemToDelete, setItemToDelete] = useState<{
@@ -151,6 +83,7 @@ const ProgramDetails: React.FC = () => {
 
   const handleDeleteConfirm = () => {
     console.log('حذف:', itemToDelete);
+    // TODO: Implement actual delete logic using apiClient
     setDeleteModalOpen(false);
     setItemToDelete(null);
   };
@@ -158,7 +91,8 @@ const ProgramDetails: React.FC = () => {
   // حساب إحصائيات الحضور
   const calculateAttendanceStats = (studentId: string) => {
     const studentRecords =
-      program.attendanceRecords?.filter((r) => r.studentId === studentId) || [];
+      program?.attendanceRecords?.filter((r) => r.studentId === studentId) ||
+      [];
     const total = studentRecords.length;
     const present = studentRecords.filter(
       (r) => r.status === AttendanceStatus.PRESENT
@@ -173,6 +107,20 @@ const ProgramDetails: React.FC = () => {
     { id: 'attendance', label: 'الحضور والغياب', icon: ClipboardCheck },
     { id: 'schedule', label: 'الجدول الزمني', icon: Calendar },
   ];
+
+  if (loading) {
+    return (
+      <div className='text-center py-8'>جاري تحميل بيانات البرنامج...</div>
+    );
+  }
+
+  if (error) {
+    return <div className='text-center py-8 text-red-600'>{error}</div>;
+  }
+
+  if (!program) {
+    return <div className='text-center py-8'>لم يتم العثور على البرنامج.</div>;
+  }
 
   return (
     <div className='min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50'>
@@ -323,7 +271,8 @@ const ProgramDetails: React.FC = () => {
                             <Mail className='w-4 h-4 text-blue-600' />
                             <span>{program.currentAdvisor.email}</span>
                           </div>
-                          <div className='flex items-center gap-2 text-gray-700'>
+                          {/* assignedDate is now part of AdvisorAssignment, not Advisor directly */}
+                          {/* <div className='flex items-center gap-2 text-gray-700'>
                             <Calendar className='w-4 h-4 text-blue-600' />
                             <span>
                               تاريخ التعيين:{' '}
@@ -331,7 +280,7 @@ const ProgramDetails: React.FC = () => {
                                 program.currentAdvisor.assignedDate!
                               ).toLocaleDateString('ar-SA')}
                             </span>
-                          </div>
+                          </div> */}
                         </div>
                       </div>
                     </div>
@@ -352,23 +301,23 @@ const ProgramDetails: React.FC = () => {
                         سجل المرشدين السابقين
                       </h3>
                       <div className='space-y-3'>
-                        {program.advisorHistory.map((advisor) => (
+                        {program.advisorHistory.map((assignment) => (
                           <div
-                            key={advisor.id}
+                            key={assignment.id}
                             className='bg-gray-50 rounded-lg p-4 border border-gray-200'
                           >
                             <div className='flex items-center justify-between'>
                               <div>
                                 <p className='font-semibold text-gray-900'>
-                                  {advisor.name}
+                                  {assignment.advisor.name}
                                 </p>
                                 <p className='text-sm text-gray-600'>
-                                  {advisor.email}
+                                  {assignment.advisor.email}
                                 </p>
                               </div>
                               <div className='text-sm text-gray-600'>
                                 {new Date(
-                                  advisor.assignedDate!
+                                  assignment.assignedDate
                                 ).toLocaleDateString('ar-SA')}
                               </div>
                             </div>
@@ -400,7 +349,8 @@ const ProgramDetails: React.FC = () => {
 
                 {program.students && program.students.length > 0 ? (
                   <div className='grid grid-cols-1 gap-4'>
-                    {program.students.map((student) => {
+                    {program.students.map((studentProgram) => {
+                      const student = studentProgram.student;
                       const stats = calculateAttendanceStats(student.id);
                       return (
                         <div
@@ -445,37 +395,42 @@ const ProgramDetails: React.FC = () => {
                                     </span>
                                     <span className='font-semibold text-gray-900 mr-1'>
                                       {new Date(
-                                        student.joinDate
+                                        studentProgram.joinDate
                                       ).toLocaleDateString('ar-SA')}
                                     </span>
                                   </div>
                                 </div>
-                                <div className='mt-3 flex items-center gap-2'>
-                                  <div className='flex-1 bg-gray-200 rounded-full h-2 overflow-hidden'>
-                                    <div
-                                      className='bg-gradient-to-r from-green-500 to-emerald-500 h-full transition-all duration-300'
-                                      style={{
-                                        width: `${stats.percentage}%`,
-                                      }}
-                                    ></div>
-                                  </div>
-                                  <span className='text-sm font-semibold text-gray-700'>
-                                    {stats.percentage}%
-                                  </span>
-                                </div>
-                                <p className='text-xs text-gray-600 mt-1'>
-                                  الحضور: {stats.present} من {stats.total} جلسة
-                                </p>
                               </div>
                             </div>
-                            <button
-                              onClick={() =>
-                                handleDeleteClick('student', student.id)
-                              }
-                              className='p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors duration-200'
-                            >
-                              <Trash2 className='w-5 h-5' />
-                            </button>
+                            <div className='flex gap-2 mt-2 md:mt-0'>
+                              <Button
+                                variant='outline'
+                                size='sm'
+                                onClick={() =>
+                                  handleDeleteClick('student', student.id)
+                                }
+                              >
+                                <Trash2 className='w-4 h-4' />
+                              </Button>
+                            </div>
+                          </div>
+                          <div className='mt-4 pt-4 border-t border-gray-100'>
+                            <p className='text-sm font-semibold text-gray-700 mb-2'>
+                              إحصائيات الحضور:
+                            </p>
+                            <div className='flex items-center gap-4 text-sm text-gray-600'>
+                              <span className='flex items-center gap-1'>
+                                <CheckCircle className='w-4 h-4 text-green-500' />
+                                حاضر: {stats.present}
+                              </span>
+                              <span className='flex items-center gap-1'>
+                                <AlertCircle className='w-4 h-4 text-yellow-500' />
+                                إجمالي: {stats.total}
+                              </span>
+                              <span className='font-bold text-gray-800'>
+                                ({stats.percentage}%) حضور
+                              </span>
+                            </div>
                           </div>
                         </div>
                       );
@@ -484,11 +439,9 @@ const ProgramDetails: React.FC = () => {
                 ) : (
                   <div className='text-center py-12 bg-gray-50 rounded-xl border-2 border-dashed border-gray-300'>
                     <Users className='w-16 h-16 text-gray-400 mx-auto mb-4' />
-                    <p className='text-gray-600 mb-4'>
-                      لا يوجد طلاب مسجلين في البرنامج
-                    </p>
+                    <p className='text-gray-600 mb-4'>لا يوجد طلاب مسجلين.</p>
                     <Button
-                      variant='primary'
+                      variant='success'
                       onClick={() => setAddStudentModalOpen(true)}
                     >
                       إضافة طالب
@@ -503,7 +456,7 @@ const ProgramDetails: React.FC = () => {
               <div className='space-y-6'>
                 <div className='flex items-center justify-between mb-4'>
                   <h2 className='text-xl font-bold text-gray-900'>
-                    سجل الحضور والغياب
+                    سجلات الحضور ({program.attendanceRecords?.length || 0})
                   </h2>
                   <Button variant='success'>
                     <div className='flex items-center gap-2'>
@@ -513,159 +466,81 @@ const ProgramDetails: React.FC = () => {
                   </Button>
                 </div>
 
-                {/* Attendance Statistics */}
-                <div className='grid grid-cols-1 md:grid-cols-4 gap-4 mb-6'>
-                  <div className='bg-gradient-to-br from-green-500 to-emerald-600 p-5 rounded-xl text-white'>
-                    <div className='flex items-center justify-between mb-2'>
-                      <CheckCircle className='w-8 h-8' />
-                      <span className='text-3xl font-bold'>
-                        {
-                          program.attendanceRecords?.filter(
-                            (r) => r.status === AttendanceStatus.PRESENT
-                          ).length
-                        }
-                      </span>
-                    </div>
-                    <p className='text-green-100'>حاضر</p>
-                  </div>
-                  <div className='bg-gradient-to-br from-red-500 to-red-600 p-5 rounded-xl text-white'>
-                    <div className='flex items-center justify-between mb-2'>
-                      <XCircle className='w-8 h-8' />
-                      <span className='text-3xl font-bold'>
-                        {
-                          program.attendanceRecords?.filter(
-                            (r) => r.status === AttendanceStatus.ABSENT
-                          ).length
-                        }
-                      </span>
-                    </div>
-                    <p className='text-red-100'>غائب</p>
-                  </div>
-                  <div className='bg-gradient-to-br from-yellow-500 to-orange-500 p-5 rounded-xl text-white'>
-                    <div className='flex items-center justify-between mb-2'>
-                      <Clock className='w-8 h-8' />
-                      <span className='text-3xl font-bold'>
-                        {
-                          program.attendanceRecords?.filter(
-                            (r) => r.status === AttendanceStatus.LATE
-                          ).length
-                        }
-                      </span>
-                    </div>
-                    <p className='text-yellow-100'>متأخر</p>
-                  </div>
-                  <div className='bg-gradient-to-br from-blue-500 to-indigo-600 p-5 rounded-xl text-white'>
-                    <div className='flex items-center justify-between mb-2'>
-                      <AlertCircle className='w-8 h-8' />
-                      <span className='text-3xl font-bold'>
-                        {
-                          program.attendanceRecords?.filter(
-                            (r) => r.status === AttendanceStatus.EXCUSED
-                          ).length
-                        }
-                      </span>
-                    </div>
-                    <p className='text-blue-100'>غياب بعذر</p>
-                  </div>
-                </div>
-
-                {/* Attendance Table */}
                 {program.attendanceRecords &&
                 program.attendanceRecords.length > 0 ? (
-                  <div className='bg-white rounded-lg border border-gray-200 overflow-hidden'>
-                    <div className='overflow-x-auto'>
-                      <table className='w-full'>
-                        <thead className='bg-gray-50 border-b border-gray-200'>
-                          <tr>
-                            <th className='px-6 py-3 text-right text-xs font-semibold text-gray-700 uppercase'>
-                              الطالب
-                            </th>
-                            <th className='px-6 py-3 text-right text-xs font-semibold text-gray-700 uppercase'>
-                              التاريخ
-                            </th>
-                            <th className='px-6 py-3 text-right text-xs font-semibold text-gray-700 uppercase'>
-                              الحالة
-                            </th>
-                            <th className='px-6 py-3 text-right text-xs font-semibold text-gray-700 uppercase'>
-                              ملاحظات
-                            </th>
-                          </tr>
-                        </thead>
-                        <tbody className='divide-y divide-gray-200'>
-                          {program.attendanceRecords.map((record) => {
-                            const student = program.students?.find(
-                              (s) => s.id === record.studentId
-                            );
-                            const statusConfig = {
-                              [AttendanceStatus.PRESENT]: {
-                                bg: 'bg-green-100',
-                                text: 'text-green-800',
-                                border: 'border-green-200',
-                              },
-                              [AttendanceStatus.ABSENT]: {
-                                bg: 'bg-red-100',
-                                text: 'text-red-800',
-                                border: 'border-red-200',
-                              },
-                              [AttendanceStatus.LATE]: {
-                                bg: 'bg-yellow-100',
-                                text: 'text-yellow-800',
-                                border: 'border-yellow-200',
-                              },
-                              [AttendanceStatus.EXCUSED]: {
-                                bg: 'bg-blue-100',
-                                text: 'text-blue-800',
-                                border: 'border-blue-200',
-                              },
-                            };
-                            const config = statusConfig[record.status];
-                            return (
-                              <tr
-                                key={record.id}
-                                className='hover:bg-gray-50 transition-colors duration-150'
+                  <div className='bg-white rounded shadow overflow-hidden'>
+                    <table className='w-full text-right'>
+                      <thead className='bg-gray-50 text-gray-600 text-sm'>
+                        <tr>
+                          <th className='p-2'>الطالب</th>
+                          <th className='p-2'>الجلسة</th>
+                          <th className='p-2'>التاريخ</th>
+                          <th className='p-2'>الحالة</th>
+                          <th className='p-2'>ملاحظات</th>
+                          <th className='p-2'>إجراءات</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {program.attendanceRecords.map((record) => (
+                          <tr key={record.id} className='border-t'>
+                            <td className='p-2'>
+                              {record.student?.name || 'N/A'}
+                            </td>
+                            <td className='p-2'>
+                              {record.session?.location || 'N/A'} (
+                              {(record.session?.date
+                                ? new Date(record.session.date)
+                                : new Date()
+                              ).toLocaleDateString('ar-SA')}
+                              )
+                            </td>
+                            <td className='p-2'>
+                              {new Date(record.date).toLocaleDateString(
+                                'ar-SA'
+                              )}
+                            </td>
+                            <td className='p-2'>
+                              <span
+                                className={`px-2 py-1 rounded-full text-xs font-semibold ${
+                                  record.status === AttendanceStatus.PRESENT
+                                    ? 'bg-green-100 text-green-800'
+                                    : record.status === AttendanceStatus.ABSENT
+                                    ? 'bg-red-100 text-red-800'
+                                    : record.status === AttendanceStatus.EXCUSED
+                                    ? 'bg-yellow-100 text-yellow-800'
+                                    : 'bg-blue-100 text-blue-800'
+                                }`}
                               >
-                                <td className='px-6 py-4'>
-                                  <div className='flex items-center gap-3'>
-                                    <div className='w-10 h-10 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center text-white font-bold'>
-                                      {student?.name.charAt(0)}
-                                    </div>
-                                    <div>
-                                      <p className='font-semibold text-gray-900'>
-                                        {student?.name}
-                                      </p>
-                                      <p className='text-sm text-gray-600'>
-                                        {student?.studentNumber}
-                                      </p>
-                                    </div>
-                                  </div>
-                                </td>
-                                <td className='px-6 py-4 text-gray-700'>
-                                  {new Date(record.date).toLocaleDateString(
-                                    'ar-SA'
-                                  )}
-                                </td>
-                                <td className='px-6 py-4'>
-                                  <span
-                                    className={`px-3 py-1 rounded-full text-sm font-semibold border ${config.bg} ${config.text} ${config.border}`}
-                                  >
-                                    {record.status}
-                                  </span>
-                                </td>
-                                <td className='px-6 py-4 text-gray-600 text-sm'>
-                                  {record.notes || '-'}
-                                </td>
-                              </tr>
-                            );
-                          })}
-                        </tbody>
-                      </table>
-                    </div>
+                                {record.status}
+                              </span>
+                            </td>
+                            <td className='p-2'>{record.notes || '-'}</td>
+                            <td className='p-2'>
+                              <div className='flex gap-2 justify-end'>
+                                <Button variant='outline' size='sm'>
+                                  <Edit2 className='w-4 h-4' />
+                                </Button>
+                                <Button
+                                  variant='outline'
+                                  size='sm'
+                                  onClick={() =>
+                                    handleDeleteClick('attendance', record.id)
+                                  }
+                                >
+                                  <Trash2 className='w-4 h-4' />
+                                </Button>
+                              </div>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
                   </div>
                 ) : (
                   <div className='text-center py-12 bg-gray-50 rounded-xl border-2 border-dashed border-gray-300'>
                     <ClipboardCheck className='w-16 h-16 text-gray-400 mx-auto mb-4' />
-                    <p className='text-gray-600 mb-4'>لا توجد سجلات حضور بعد</p>
-                    <Button variant='primary'>تسجيل حضور جديد</Button>
+                    <p className='text-gray-600 mb-4'>لا توجد سجلات حضور.</p>
+                    <Button variant='success'>تسجيل حضور جديد</Button>
                   </div>
                 )}
               </div>
@@ -676,7 +551,7 @@ const ProgramDetails: React.FC = () => {
               <div className='space-y-6'>
                 <div className='flex items-center justify-between mb-4'>
                   <h2 className='text-xl font-bold text-gray-900'>
-                    الجدول الزمني ({program.sessions?.length || 0} جلسة)
+                    الجدول الزمني ({program.sessions?.length || 0})
                   </h2>
                   <Button
                     variant='success'
@@ -690,68 +565,58 @@ const ProgramDetails: React.FC = () => {
                 </div>
 
                 {program.sessions && program.sessions.length > 0 ? (
-                  <div className='grid grid-cols-1 gap-4'>
+                  <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
                     {program.sessions.map((session) => (
                       <div
                         key={session.id}
                         className='bg-white rounded-lg p-5 border border-gray-200 hover:border-blue-300 hover:shadow-md transition-all duration-200'
                       >
-                        <div className='flex items-start justify-between'>
-                          <div className='flex-1'>
-                            <div className='flex items-center gap-3 mb-3'>
-                              <div className='w-12 h-12 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center'>
-                                <Calendar className='w-6 h-6 text-white' />
-                              </div>
-                              <div>
-                                <h3 className='text-lg font-bold text-gray-900'>
-                                  {new Date(session.date).toLocaleDateString(
-                                    'ar-SA',
-                                    {
-                                      weekday: 'long',
-                                      year: 'numeric',
-                                      month: 'long',
-                                      day: 'numeric',
-                                    }
-                                  )}
-                                </h3>
-                                {session.isRecurring && (
-                                  <span className='text-xs px-2 py-1 bg-purple-100 text-purple-800 rounded-full border border-purple-200'>
-                                    جلسة دورية ({session.recurrencePattern})
-                                  </span>
-                                )}
-                              </div>
-                            </div>
-                            <div className='grid grid-cols-1 md:grid-cols-3 gap-3 text-sm'>
-                              <div className='flex items-center gap-2 text-gray-700'>
-                                <Clock className='w-4 h-4 text-blue-600' />
-                                <span>
-                                  {session.startTime} - {session.endTime}
-                                </span>
-                              </div>
-                              <div className='flex items-center gap-2 text-gray-700'>
-                                <MapPin className='w-4 h-4 text-red-600' />
-                                <span>{session.location}</span>
-                              </div>
-                            </div>
-                            {session.notes && (
-                              <p className='mt-3 text-sm text-gray-600 bg-gray-50 p-3 rounded-lg'>
-                                {session.notes}
-                              </p>
-                            )}
-                          </div>
+                        <div className='flex items-start justify-between mb-3'>
+                          <h3 className='text-lg font-bold text-gray-900'>
+                            {session.location} -{' '}
+                            {new Date(session.date).toLocaleDateString('ar-SA')}
+                          </h3>
                           <div className='flex gap-2'>
-                            <button className='p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors duration-200'>
-                              <Edit2 className='w-5 h-5' />
-                            </button>
-                            <button
+                            <Button variant='outline' size='sm'>
+                              <Edit2 className='w-4 h-4' />
+                            </Button>
+                            <Button
+                              variant='outline'
+                              size='sm'
                               onClick={() =>
                                 handleDeleteClick('session', session.id)
                               }
-                              className='p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors duration-200'
                             >
-                              <Trash2 className='w-5 h-5' />
-                            </button>
+                              <Trash2 className='w-4 h-4' />
+                            </Button>
                           </div>
+                        </div>
+                        <div className='space-y-2 text-sm text-gray-700'>
+                          <div className='flex items-center gap-2'>
+                            <Clock className='w-4 h-4 text-blue-600' />
+                            <span>
+                              الوقت: {session.startTime} - {session.endTime}
+                            </span>
+                          </div>
+                          <div className='flex items-center gap-2'>
+                            <MapPin className='w-4 h-4 text-blue-600' />
+                            <span>الموقع: {session.location}</span>
+                          </div>
+                          {session.isRecurring && (
+                            <div className='flex items-center gap-2'>
+                              <Calendar className='w-4 h-4 text-blue-600' />
+                              <span>
+                                متكررة:{' '}
+                                {session.recurrencePattern || 'غير محدد'}
+                              </span>
+                            </div>
+                          )}
+                          {session.notes && (
+                            <div className='flex items-start gap-2'>
+                              <ClipboardCheck className='w-4 h-4 text-blue-600 mt-1' />
+                              <span>ملاحظات: {session.notes}</span>
+                            </div>
+                          )}
                         </div>
                       </div>
                     ))}
@@ -759,11 +624,9 @@ const ProgramDetails: React.FC = () => {
                 ) : (
                   <div className='text-center py-12 bg-gray-50 rounded-xl border-2 border-dashed border-gray-300'>
                     <Calendar className='w-16 h-16 text-gray-400 mx-auto mb-4' />
-                    <p className='text-gray-600 mb-4'>
-                      لا توجد جلسات مجدولة بعد
-                    </p>
+                    <p className='text-gray-600 mb-4'>لا توجد جلسات مجدولة.</p>
                     <Button
-                      variant='primary'
+                      variant='success'
                       onClick={() => setAddSessionModalOpen(true)}
                     >
                       إضافة جلسة
@@ -774,129 +637,62 @@ const ProgramDetails: React.FC = () => {
             )}
           </div>
         </div>
-
-        {/* Delete Confirmation Modal */}
-        <Modal
-          isOpen={deleteModalOpen}
-          onClose={() => setDeleteModalOpen(false)}
-          title='تأكيد الحذف'
-          footer={
-            <>
-              <Button
-                variant='secondary'
-                onClick={() => setDeleteModalOpen(false)}
-              >
-                إلغاء
-              </Button>
-              <Button variant='danger' onClick={handleDeleteConfirm}>
-                حذف
-              </Button>
-            </>
-          }
-        >
-          <p className='text-gray-700'>
-            هل أنت متأكد من حذف هذا العنصر؟ لا يمكن التراجع عن هذا الإجراء.
-          </p>
-        </Modal>
-
-        {/* Add Student Modal */}
-        <Modal
-          isOpen={addStudentModalOpen}
-          onClose={() => setAddStudentModalOpen(false)}
-          title='إضافة طالب جديد'
-          footer={
-            <>
-              <Button
-                variant='secondary'
-                onClick={() => setAddStudentModalOpen(false)}
-              >
-                إلغاء
-              </Button>
-              <Button variant='success'>إضافة</Button>
-            </>
-          }
-        >
-          <div className='space-y-4'>
-            <div className='relative'>
-              <Search className='absolute right-3 top-3 w-5 h-5 text-gray-400' />
-              <input
-                type='text'
-                placeholder='ابحث عن طالب...'
-                className='w-full pr-10 pl-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500'
-              />
-            </div>
-            <p className='text-sm text-gray-600'>
-              ابحث عن الطالب في قاعدة البيانات المدرسية وأضفه إلى البرنامج
-            </p>
-          </div>
-        </Modal>
-
-        {/* Add Session Modal */}
-        <Modal
-          isOpen={addSessionModalOpen}
-          onClose={() => setAddSessionModalOpen(false)}
-          title='إضافة جلسة جديدة'
-          footer={
-            <>
-              <Button
-                variant='secondary'
-                onClick={() => setAddSessionModalOpen(false)}
-              >
-                إلغاء
-              </Button>
-              <Button variant='success'>إضافة</Button>
-            </>
-          }
-        >
-          <div className='space-y-4'>
-            <div>
-              <label className='block text-sm font-medium text-gray-700 mb-2'>
-                التاريخ
-              </label>
-              <input
-                type='date'
-                className='w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500'
-              />
-            </div>
-            <div className='grid grid-cols-2 gap-4'>
-              <div>
-                <label className='block text-sm font-medium text-gray-700 mb-2'>
-                  وقت البداية
-                </label>
-                <input
-                  type='time'
-                  className='w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500'
-                />
-              </div>
-              <div>
-                <label className='block text-sm font-medium text-gray-700 mb-2'>
-                  وقت النهاية
-                </label>
-                <input
-                  type='time'
-                  className='w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500'
-                />
-              </div>
-            </div>
-            <div>
-              <label className='block text-sm font-medium text-gray-700 mb-2'>
-                المكان
-              </label>
-              <input
-                type='text'
-                placeholder='مثال: مختبر الحاسب'
-                className='w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500'
-              />
-            </div>
-            <div>
-              <label className='flex items-center gap-2'>
-                <input type='checkbox' className='w-4 h-4 text-blue-600' />
-                <span className='text-sm text-gray-700'>جلسة دورية</span>
-              </label>
-            </div>
-          </div>
-        </Modal>
       </div>
+
+      {/* Delete Confirmation Modal */}
+      <Modal
+        isOpen={deleteModalOpen}
+        onClose={() => setDeleteModalOpen(false)}
+        title='تأكيد الحذف'
+      >
+        <p className='text-gray-700 mb-4'>
+          هل أنت متأكد أنك تريد حذف هذا العنصر؟ لا يمكن التراجع عن هذا الإجراء.
+        </p>
+        <div className='flex justify-end gap-3'>
+          <Button variant='outline' onClick={() => setDeleteModalOpen(false)}>
+            إلغاء
+          </Button>
+          <Button variant='danger' onClick={handleDeleteConfirm}>
+            حذف
+          </Button>
+        </div>
+      </Modal>
+
+      {/* Add Student Modal (Placeholder) */}
+      <Modal
+        isOpen={addStudentModalOpen}
+        onClose={() => setAddStudentModalOpen(false)}
+        title='إضافة طالب للبرنامج'
+      >
+        <p className='text-gray-700'>نموذج إضافة طالب سيتم تطويره لاحقًا.</p>
+        <div className='flex justify-end gap-3 mt-4'>
+          <Button
+            variant='outline'
+            onClick={() => setAddStudentModalOpen(false)}
+          >
+            إلغاء
+          </Button>
+          <Button variant='primary'>حفظ</Button>
+        </div>
+      </Modal>
+
+      {/* Add Session Modal (Placeholder) */}
+      <Modal
+        isOpen={addSessionModalOpen}
+        onClose={() => setAddSessionModalOpen(false)}
+        title='إضافة جلسة للبرنامج'
+      >
+        <p className='text-gray-700'>نموذج إضافة جلسة سيتم تطويره لاحقًا.</p>
+        <div className='flex justify-end gap-3 mt-4'>
+          <Button
+            variant='outline'
+            onClick={() => setAddSessionModalOpen(false)}
+          >
+            إلغاء
+          </Button>
+          <Button variant='primary'>حفظ</Button>
+        </div>
+      </Modal>
     </div>
   );
 };

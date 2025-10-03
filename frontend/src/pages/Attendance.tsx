@@ -1,78 +1,160 @@
-// src/pages/Attendance.tsx
 import { useEffect, useMemo, useState } from 'react';
-import type { AttendanceRecord, Student } from '../lib/mockApi';
-import { mockApi } from '../lib/mockApi';
+import { api } from '../lib/apiClient';
+import type {
+  AttendanceRecordType,
+  StudentType,
+  SessionType,
+} from '../lib/apiClient';
+import { AttendanceStatus } from '../types/program';
+import Button from '../components/common/Button';
+import Input from '../components/common/Input';
 
 export default function AttendancePage() {
-  const [students, setStudents] = useState<Student[]>([]);
-  const [sessions, setSessions] = useState<any[]>([]);
-  const [records, setRecords] = useState<AttendanceRecord[]>([]);
-  const [selectedSession, setSelectedSession] = useState<string | null>(null);
+  const [students, setStudents] = useState<StudentType[]>([]);
+  const [sessions, setSessions] = useState<SessionType[]>([]);
+  const [records, setRecords] = useState<AttendanceRecordType[]>([]);
+  const [selectedSessionId, setSelectedSessionId] = useState<string | null>(
+    null
+  );
   const [date, setDate] = useState<string>(
     new Date().toISOString().slice(0, 10)
   );
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    mockApi.students.list().then(setStudents);
-    mockApi.sessions.list().then(setSessions);
-    mockApi.attendance.list().then(setRecords);
-  }, []);
-
-  const togglePresent = (studentId: string) => {
-    setRecords((prev) => {
-      const exists = prev.find(
-        (r) =>
-          r.studentId === studentId &&
-          r.date === date &&
-          r.sessionId === (selectedSession ?? '')
-      );
-      if (exists) {
-        // cycle: present -> absent -> late -> remove
-        const nextStatus =
-          exists.status === 'present'
-            ? 'absent'
-            : exists.status === 'absent'
-            ? 'late'
-            : 'present';
-        return prev.map((r) =>
-          r === exists ? { ...r, status: nextStatus } : r
-        );
-      } else {
-        const newRec: AttendanceRecord = {
-          id: `a_${Date.now()}`,
-          studentId,
-          sessionId: selectedSession ?? '',
-          date,
-          status: 'present',
-        };
-        return [...prev, newRec];
-      }
-    });
+  const fetchInitialData = async () => {
+    try {
+      setLoading(true);
+      const [fetchedStudents, fetchedSessions, fetchedRecords] =
+        await Promise.all([
+          api.students.list(),
+          api.sessions.list(),
+          api.attendanceRecords.list(),
+        ]);
+      setStudents(fetchedStudents);
+      setSessions(fetchedSessions);
+      setRecords(fetchedRecords);
+    } catch (err) {
+      console.error('Failed to fetch initial attendance data:', err);
+      setError('Failed to load attendance data.');
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const saveAll = async () => {
-    await mockApi.attendance.saveMany(records);
-    alert('تم حفظ الحضور (محاكاة)');
+  useEffect(() => {
+    fetchInitialData();
+  }, []);
+
+  const toggleAttendanceStatus = async (studentId: string) => {
+    if (!selectedSessionId) {
+      alert('الرجاء اختيار جلسة أولاً.');
+      return;
+    }
+
+    const currentRecord = records.find(
+      (r) =>
+        r.studentId === studentId &&
+        r.sessionId === selectedSessionId &&
+        new Date(r.date).toISOString().slice(0, 10) === date
+    );
+
+    let newStatus: AttendanceStatus;
+    let updatedRecord: AttendanceRecordType | undefined;
+
+    try {
+      if (currentRecord) {
+        // Cycle through statuses: PRESENT -> ABSENT -> EXCUSED -> LATE -> PRESENT
+        switch (currentRecord.status) {
+          case AttendanceStatus.PRESENT:
+            newStatus = AttendanceStatus.ABSENT;
+            break;
+          case AttendanceStatus.ABSENT:
+            newStatus = AttendanceStatus.EXCUSED;
+            break;
+          case AttendanceStatus.EXCUSED:
+            newStatus = AttendanceStatus.LATE;
+            break;
+          case AttendanceStatus.LATE:
+            newStatus = AttendanceStatus.PRESENT;
+            break;
+          default:
+            newStatus = AttendanceStatus.PRESENT;
+        }
+        updatedRecord = await api.attendanceRecords.update(currentRecord.id, {
+          status: newStatus,
+        });
+      } else {
+        // Create new record as PRESENT
+        newStatus = AttendanceStatus.PRESENT;
+        updatedRecord = await api.attendanceRecords.create({
+          studentId,
+          sessionId: selectedSessionId,
+          programId:
+            sessions.find((s) => s.id === selectedSessionId)?.programId || '', // Assuming programId can be derived from session
+          date: new Date(date).toISOString(),
+          status: newStatus,
+        });
+      }
+
+      if (updatedRecord) {
+        setRecords((prev) => {
+          const existingIndex = prev.findIndex(
+            (r) => r.id === updatedRecord?.id
+          );
+          if (existingIndex > -1) {
+            const newRecords = [...prev];
+            newRecords[existingIndex] = updatedRecord;
+            return newRecords;
+          } else {
+            return [...prev, updatedRecord];
+          }
+        });
+      }
+    } catch (err) {
+      console.error('Failed to update attendance record:', err);
+      setError('فشل في تحديث سجل الحضور. يرجى المحاولة مرة أخرى.');
+    }
   };
 
   const stats = useMemo(() => {
-    const totalDays = new Set(records.map((r) => r.date)).size || 1;
-    const perStudent = students.map((s) => {
-      const sRecs = records.filter((r) => r.studentId === s.id);
-      const presentCount = sRecs.filter((r) => r.status === 'present').length;
-      return {
-        student: s,
-        presentCount,
-        percent: Math.round((presentCount / totalDays) * 100),
-      };
-    });
-    const avg = perStudent.length
-      ? Math.round(
-          perStudent.reduce((a, b) => a + b.percent, 0) / perStudent.length
-        )
-      : 0;
-    return { perStudent, avg };
-  }, [records, students]);
+    const relevantRecords = records.filter(
+      (r) =>
+        new Date(r.date).toISOString().slice(0, 10) === date &&
+        r.sessionId === selectedSessionId
+    );
+    const totalStudents = students.length;
+    const presentCount = relevantRecords.filter(
+      (r) => r.status === AttendanceStatus.PRESENT
+    ).length;
+    const absentCount = relevantRecords.filter(
+      (r) => r.status === AttendanceStatus.ABSENT
+    ).length;
+    const excusedCount = relevantRecords.filter(
+      (r) => r.status === AttendanceStatus.EXCUSED
+    ).length;
+    const lateCount = relevantRecords.filter(
+      (r) => r.status === AttendanceStatus.LATE
+    ).length;
+
+    return {
+      totalStudents,
+      presentCount,
+      absentCount,
+      excusedCount,
+      lateCount,
+      notRecorded:
+        totalStudents - (presentCount + absentCount + excusedCount + lateCount),
+    };
+  }, [records, students, selectedSessionId, date]);
+
+  if (loading) {
+    return <div className='text-center py-8'>جاري تحميل بيانات الحضور...</div>;
+  }
+
+  if (error) {
+    return <div className='text-center py-8 text-red-600'>{error}</div>;
+  }
 
   return (
     <div className='p-6'>
@@ -83,82 +165,118 @@ export default function AttendancePage() {
           <div className='flex items-center justify-between mb-4'>
             <div className='flex gap-2'>
               <select
-                value={selectedSession ?? ''}
-                onChange={(e) => setSelectedSession(e.target.value || null)}
+                value={selectedSessionId ?? ''}
+                onChange={(e) => setSelectedSessionId(e.target.value || null)}
                 className='p-2 border rounded'
               >
                 <option value=''>-- اختر الجلسة --</option>
-                {sessions.map((s: any) => (
+                {sessions.map((s) => (
                   <option key={s.id} value={s.id}>
-                    {s.title ?? s.date}
+                    {s.location} -{' '}
+                    {new Date(s.date).toLocaleDateString('ar-SA')}
                   </option>
                 ))}
               </select>
-              <input
+              <Input
                 type='date'
                 value={date}
                 onChange={(e) => setDate(e.target.value)}
-                className='p-2 border rounded'
+                label='التاريخ'
               />
-            </div>
-            <div className='flex gap-2'>
-              <button onClick={saveAll} className='px-3 py-2 border rounded'>
-                حفظ الكل
-              </button>
             </div>
           </div>
 
-          <table className='w-full text-right'>
-            <thead className='bg-gray-50 text-sm text-gray-600'>
-              <tr>
-                <th className='p-2'>الطالب</th>
-                <th className='p-2'>الحالة</th>
-              </tr>
-            </thead>
-            <tbody>
-              {students.map((s) => {
-                const rec = records.find(
-                  (r) =>
-                    r.studentId === s.id &&
-                    r.date === date &&
-                    r.sessionId === (selectedSession ?? '')
-                );
-                return (
-                  <tr key={s.id} className='border-t'>
-                    <td className='p-2'>{s.fullName}</td>
-                    <td className='p-2'>
-                      <div className='flex gap-2 justify-end'>
-                        <button
-                          onClick={() => togglePresent(s.id)}
-                          className='px-3 py-1 border rounded'
-                        >
-                          {rec ? rec.status : 'لم يسجل'}
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
+          {selectedSessionId && (
+            <table className='w-full text-right'>
+              <thead className='bg-gray-50 text-sm text-gray-600'>
+                <tr>
+                  <th className='p-2'>الطالب</th>
+                  <th className='p-2'>الحالة</th>
+                </tr>
+              </thead>
+              <tbody>
+                {students.map((s) => {
+                  const rec = records.find(
+                    (r) =>
+                      r.studentId === s.id &&
+                      r.sessionId === selectedSessionId &&
+                      new Date(r.date).toISOString().slice(0, 10) === date
+                  );
+                  return (
+                    <tr key={s.id} className='border-t'>
+                      <td className='p-2'>{s.name}</td>
+                      <td className='p-2'>
+                        <div className='flex gap-2 justify-end'>
+                          <Button
+                            onClick={() => toggleAttendanceStatus(s.id)}
+                            variant={
+                              rec?.status === AttendanceStatus.PRESENT
+                                ? 'success'
+                                : rec?.status === AttendanceStatus.ABSENT
+                                ? 'danger'
+                                : rec?.status === AttendanceStatus.EXCUSED
+                                ? 'warning'
+                                : rec?.status === AttendanceStatus.LATE
+                                ? 'info'
+                                : 'secondary'
+                            }
+                          >
+                            {rec ? rec.status : 'لم يسجل'}
+                          </Button>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          )}
+          {!selectedSessionId && (
+            <div className='text-center py-12 bg-gray-50 rounded-xl border-2 border-dashed border-gray-300'>
+              <p className='text-gray-600 mb-4'>
+                الرجاء اختيار جلسة لعرض أو تسجيل الحضور.
+              </p>
+            </div>
+          )}
         </div>
 
         <div className='bg-white p-4 rounded shadow'>
-          <h3 className='font-medium mb-2'>إحصائيات</h3>
-          <div className='text-sm text-gray-600 mb-4'>
-            معدل الحضور العام:{' '}
-            <span className='font-semibold'>{stats.avg}%</span>
-          </div>
-          <div className='space-y-2 max-h-64 overflow-auto'>
-            {stats.perStudent.map((p) => (
-              <div
-                key={p.student.id}
-                className='flex justify-between items-center'
-              >
-                <div className='text-sm'>{p.student.fullName}</div>
-                <div className='text-sm font-medium'>{p.percent}%</div>
-              </div>
-            ))}
+          <h3 className='font-medium mb-2'>إحصائيات الجلسة المحددة</h3>
+          <div className='space-y-2 text-sm text-gray-600'>
+            <p>
+              إجمالي الطلاب:{' '}
+              <span className='font-semibold'>{stats.totalStudents}</span>
+            </p>
+            <p>
+              حاضر:{' '}
+              <span className='font-semibold text-green-600'>
+                {stats.presentCount}
+              </span>
+            </p>
+            <p>
+              غائب:{' '}
+              <span className='font-semibold text-red-600'>
+                {stats.absentCount}
+              </span>
+            </p>
+            <p>
+              غياب بعذر:{' '}
+              <span className='font-semibold text-yellow-600'>
+                {stats.excusedCount}
+              </span>
+            </p>
+            <p>
+              متأخر:{' '}
+              <span className='font-semibold text-blue-600'>
+                {stats.lateCount}
+              </span>
+            </p>
+            <p>
+              لم يسجل:{' '}
+              <span className='font-semibold text-gray-600'>
+                {stats.notRecorded}
+              </span>
+            </p>
           </div>
         </div>
       </div>
