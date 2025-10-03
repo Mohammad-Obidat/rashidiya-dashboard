@@ -1,0 +1,168 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Program {
+  id                String             @id @default(uuid())
+  name              String
+  type              ProgramType
+  description       String
+  status            ProgramStatus      @default(ACTIVE)
+  createdDate       DateTime           @default(now())
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
+  
+  currentAdvisorId  String?
+  currentAdvisor    Advisor?           @relation("CurrentAdvisor", fields: [currentAdvisorId], references: [id])
+  
+  advisorHistory    AdvisorAssignment[]
+  students          StudentProgram[]
+  sessions          Session[]
+  attendanceRecords AttendanceRecord[]
+
+  @@index([status])
+  @@index([type])
+}
+
+model Advisor {
+  id           String              @id @default(uuid())
+  name         String
+  phone        String
+  email        String              @unique
+  createdAt    DateTime            @default(now())
+  updatedAt    DateTime            @updatedAt
+  
+  currentPrograms Program[]         @relation("CurrentAdvisor")
+  assignments     AdvisorAssignment[]
+
+  @@index([email])
+}
+
+model AdvisorAssignment {
+  id           String    @id @default(uuid())
+  advisorId    String
+  programId    String
+  assignedDate DateTime  @default(now())
+  endDate      DateTime?
+  
+  advisor      Advisor   @relation(fields: [advisorId], references: [id], onDelete: Cascade)
+  program      Program   @relation(fields: [programId], references: [id], onDelete: Cascade)
+
+  @@index([advisorId])
+  @@index([programId])
+}
+
+model Student {
+  id            String             @id @default(uuid())
+  name          String
+  studentNumber String             @unique
+  grade         String
+  section       String
+  gender        Gender?            @default(MALE) 
+  birthDate     DateTime?          
+  phone         String?
+  address       String?
+  createdAt     DateTime           @default(now())
+  updatedAt     DateTime           @updatedAt
+
+  programs          StudentProgram[]
+  attendanceRecords AttendanceRecord[]
+
+  @@index([studentNumber])
+  @@index([grade, section])
+}
+
+model StudentProgram {
+  id        String   @id @default(uuid())
+  studentId String
+  programId String
+  joinDate  DateTime @default(now())
+  
+  student   Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  program   Program  @relation(fields: [programId], references: [id], onDelete: Cascade)
+
+  @@unique([studentId, programId])
+  @@index([studentId])
+  @@index([programId])
+}
+
+model Session {
+  id                String             @id @default(uuid())
+  programId         String
+  date              DateTime
+  startTime         String
+  endTime           String
+  location          String
+  isRecurring       Boolean            @default(false)
+  recurrencePattern RecurrencePattern?
+  notes             String?
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
+  
+  program           Program            @relation(fields: [programId], references: [id], onDelete: Cascade)
+  attendanceRecords AttendanceRecord[]
+
+  @@index([programId])
+  @@index([date])
+}
+
+model AttendanceRecord {
+  id        String           @id @default(uuid())
+  studentId String
+  sessionId String
+  programId String
+  date      DateTime
+  status    AttendanceStatus
+  notes     String?
+  createdAt DateTime         @default(now())
+  updatedAt DateTime         @updatedAt
+  
+  student   Student          @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  session   Session          @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  program   Program          @relation(fields: [programId], references: [id], onDelete: Cascade)
+
+  @@unique([studentId, sessionId])
+  @@index([studentId])
+  @@index([sessionId])
+  @@index([programId])
+  @@index([date])
+}
+
+enum Gender {
+  MALE
+  FEMALE
+}
+
+enum ProgramType {
+  SPORTS      // رياضية
+  CULTURAL    // ثقافية
+  SCIENTIFIC  // علمية
+  ARTISTIC    // فنية
+  SOCIAL      // اجتماعية
+  RELIGIOUS   // دينية
+  OTHER       // أخرى
+}
+
+enum ProgramStatus {
+  ACTIVE      // نشط
+  INACTIVE    // غير نشط
+  ARCHIVED    // مؤرشف
+}
+
+enum AttendanceStatus {
+  PRESENT     // حاضر
+  ABSENT      // غائب
+  EXCUSED     // غياب بعذر
+  LATE        // متأخر
+}
+
+enum RecurrencePattern {
+  DAILY
+  WEEKLY
+  MONTHLY
+}
