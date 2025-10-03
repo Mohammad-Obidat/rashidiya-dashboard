@@ -1,24 +1,18 @@
 import axios from 'axios';
 import type {
-  Program,
   Advisor,
-  Session,
   AttendanceRecord,
+  Program,
+  Session,
   Student,
-} from '@prisma/client';
-
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+} from '../types/program';
 
 const apiClient = axios.create({
-  baseURL: API_URL,
-  headers: {
-    'Content-Type': 'application/json',
-  },
+  baseURL: '/api',
+  headers: { 'Content-Type': 'application/json' },
 });
 
-// Extend Prisma types for frontend usage if needed, or define new ones
-// For simplicity, we'll use the Prisma types directly for now, assuming they are compatible.
-
+// Type aliases
 export type ProgramType = Program;
 export type AdvisorType = Advisor;
 export type SessionType = Session;
@@ -27,11 +21,11 @@ export type StudentType = Student;
 
 export const api = {
   programs: {
-    list: async (): Promise<ProgramType[]> => {
+    list: async (): Promise<Program[]> => {
       const response = await apiClient.get('/programs');
       return response.data;
     },
-    get: async (id: string): Promise<ProgramType> => {
+    get: async (id: string): Promise<Program> => {
       const response = await apiClient.get(`/programs/${id}`);
       return response.data;
     },
@@ -52,6 +46,7 @@ export const api = {
       await apiClient.delete(`/programs/${id}`);
     },
   },
+
   advisors: {
     list: async (): Promise<AdvisorType[]> => {
       const response = await apiClient.get('/advisors');
@@ -78,6 +73,7 @@ export const api = {
       await apiClient.delete(`/advisors/${id}`);
     },
   },
+
   sessions: {
     list: async (): Promise<SessionType[]> => {
       const response = await apiClient.get('/sessions');
@@ -104,6 +100,7 @@ export const api = {
       await apiClient.delete(`/sessions/${id}`);
     },
   },
+
   attendanceRecords: {
     list: async (): Promise<AttendanceRecordType[]> => {
       const response = await apiClient.get('/attendance-records');
@@ -132,6 +129,7 @@ export const api = {
       await apiClient.delete(`/attendance-records/${id}`);
     },
   },
+
   students: {
     list: async (): Promise<StudentType[]> => {
       const response = await apiClient.get('/students');

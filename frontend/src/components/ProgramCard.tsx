@@ -1,13 +1,59 @@
 import React from 'react';
 import { Eye, Edit2, Trash2, Calendar, User, Users } from 'lucide-react';
-import type { IProgram } from '../types/program';
+import type { Program } from '../types/program';
+import { ProgramStatus, ProgramTypeEnum } from '../types/program';
 
 interface ProgramCardProps {
-  program: IProgram;
+  program: Program;
   onView: (id: string) => void;
   onEdit: (id: string) => void;
   onDelete: (id: string) => void;
 }
+
+// Map status and types to Arabic labels for display
+const statusLabels: Record<ProgramStatus, string> = {
+  ACTIVE: 'نشط',
+  INACTIVE: 'غير نشط',
+  ARCHIVED: 'مؤرشف',
+};
+
+const typeLabels: Record<ProgramTypeEnum, string> = {
+  SPORTS: 'رياضية',
+  CULTURAL: 'ثقافية',
+  SCIENTIFIC: 'علمية',
+  ARTISTIC: 'فنية',
+  SOCIAL: 'اجتماعية',
+  RELIGIOUS: 'دينية',
+  OTHER: 'أخرى',
+};
+
+const statusConfig = {
+  نشط: {
+    bg: 'bg-gradient-to-r from-green-50 to-emerald-50',
+    badge: 'bg-green-100 text-green-800 border border-green-200',
+    dot: 'bg-green-500',
+  },
+  'غير نشط': {
+    bg: 'bg-gradient-to-r from-gray-50 to-slate-50',
+    badge: 'bg-gray-100 text-gray-800 border border-gray-200',
+    dot: 'bg-gray-500',
+  },
+  مؤرشف: {
+    bg: 'bg-gradient-to-r from-yellow-50 to-amber-50',
+    badge: 'bg-yellow-100 text-yellow-800 border border-yellow-200',
+    dot: 'bg-yellow-500',
+  },
+};
+
+const typeColors = {
+  رياضية: 'bg-blue-100 text-blue-800 border-blue-200',
+  ثقافية: 'bg-purple-100 text-purple-800 border-purple-200',
+  علمية: 'bg-cyan-100 text-cyan-800 border-cyan-200',
+  فنية: 'bg-pink-100 text-pink-800 border-pink-200',
+  اجتماعية: 'bg-green-100 text-green-800 border-green-200',
+  دينية: 'bg-indigo-100 text-indigo-800 border-indigo-200',
+  أخرى: 'bg-gray-100 text-gray-800 border-gray-200',
+};
 
 const ProgramCard: React.FC<ProgramCardProps> = ({
   program,
@@ -15,42 +61,13 @@ const ProgramCard: React.FC<ProgramCardProps> = ({
   onEdit,
   onDelete,
 }) => {
-  const statusConfig = {
-    نشط: {
-      bg: 'bg-gradient-to-r from-green-50 to-emerald-50',
-      text: 'text-green-700',
-      badge: 'bg-green-100 text-green-800 border border-green-200',
-      dot: 'bg-green-500',
-    },
-    'غير نشط': {
-      bg: 'bg-gradient-to-r from-gray-50 to-slate-50',
-      text: 'text-gray-700',
-      badge: 'bg-gray-100 text-gray-800 border border-gray-200',
-      dot: 'bg-gray-500',
-    },
-    مؤرشف: {
-      bg: 'bg-gradient-to-r from-yellow-50 to-amber-50',
-      text: 'text-yellow-700',
-      badge: 'bg-yellow-100 text-yellow-800 border border-yellow-200',
-      dot: 'bg-yellow-500',
-    },
-  };
-
-  const typeColors = {
-    رياضية: 'bg-blue-100 text-blue-800 border-blue-200',
-    ثقافية: 'bg-purple-100 text-purple-800 border-purple-200',
-    علمية: 'bg-cyan-100 text-cyan-800 border-cyan-200',
-    فنية: 'bg-pink-100 text-pink-800 border-pink-200',
-    اجتماعية: 'bg-green-100 text-green-800 border-green-200',
-    دينية: 'bg-indigo-100 text-indigo-800 border-indigo-200',
-    أخرى: 'bg-gray-100 text-gray-800 border-gray-200',
-  };
-
-  const config = statusConfig[program.status];
+  const statusLabel = statusLabels[program.status];
+  const typeLabel = typeLabels[program.type];
+  const config = statusConfig[statusLabel];
 
   return (
     <div className='group bg-white rounded-xl shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden border border-gray-100 hover:border-blue-200 hover:-translate-y-1'>
-      {/* Header Section with Gradient */}
+      {/* Header Section */}
       <div className={`${config.bg} p-5 border-b border-gray-100`}>
         <div className='flex items-start justify-between mb-3'>
           <h3 className='text-xl font-bold text-gray-900 line-clamp-1 flex-1'>
@@ -62,17 +79,16 @@ const ProgramCard: React.FC<ProgramCardProps> = ({
             <span
               className={`w-2 h-2 rounded-full ${config.dot} animate-pulse`}
             ></span>
-            {program.status}
+            {statusLabel}
           </div>
         </div>
-
         <div className='flex items-center gap-2'>
           <span
             className={`px-3 py-1.5 rounded-lg text-sm font-semibold border ${
-              typeColors[program.type] || typeColors['أخرى']
+              typeColors[typeLabel] || typeColors['أخرى']
             }`}
           >
-            {program.type}
+            {typeLabel}
           </span>
         </div>
       </div>
