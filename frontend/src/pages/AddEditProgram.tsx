@@ -1,64 +1,84 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import Button from '../components/common/Button';
-import { ArrowRight, Save, X } from 'lucide-react';
-import { ProgramType, ProgramStatus } from '../types/program';
-import type { IProgramFormData } from '../types/program';
+import { ProgramStatus, ProgramTypeEnum } from '../types/program';
+import { getAllStatuses, getAllTypes } from '../config/programConfig';
 import { api } from '../lib/apiClient';
+import type { Program } from '../types/program';
+
+// Import separated components
+import FormHeader from '../components/form/FormHeader';
+import FormInputField from '../components/form/FormInputField';
+import FormTextAreaField from '../components/form/FormTextAreaField';
+import FormSelectField from '../components/form/FormSelectField';
+import FormActionButtons from '../components/form//FormActionButtons';
+import LoadingState from '../components/LoadingState';
+import ErrorState from '../components/ErrorState';
+
+interface ProgramFormData {
+  name: string;
+  type: ProgramTypeEnum;
+  description: string;
+  status: ProgramStatus;
+}
 
 const AddEditProgram: React.FC = () => {
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
-  const isEditMode = id !== 'new';
+  const isEditMode = id !== 'new' && !!id;
 
-  const [formData, setFormData] = useState<IProgramFormData>({
+  const [formData, setFormData] = useState<ProgramFormData>({
     name: '',
-    type: ProgramType.SCIENTIFIC,
+    type: ProgramTypeEnum.SCIENTIFIC,
     description: '',
     status: ProgramStatus.ACTIVE,
   });
 
-  const [errors, setErrors] = useState<Partial<IProgramFormData>>({});
+  const [errors, setErrors] = useState<Partial<ProgramFormData>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [loadError, setLoadError] = useState<string | null>(null);
+
+  const statusOptions = getAllStatuses();
+  const typeOptions = getAllTypes();
 
   useEffect(() => {
-    const fetchProgramData = async () => {
-      if (isEditMode && id) {
+    if (isEditMode && id) {
+      const fetchProgram = async () => {
         try {
-          setLoading(true);
-          const programData = await api.programs.get(id);
+          setIsLoading(true);
+          setLoadError(null);
+          const program: Program = await api.programs.get(id);
           setFormData({
-            name: programData.name,
-            type: programData.type,
-            description: programData.description,
-            status: programData.status,
-            currentAdvisorId: programData.currentAdvisorId || undefined,
+            name: program.name,
+            type: program.type,
+            description: program.description,
+            status: program.status,
           });
-        } catch (err) {
-          console.error('Failed to fetch program for edit:', err);
-          setError('Failed to load program data for editing.');
+        } catch (err: any) {
+          setLoadError(err.message || 'فشل في تحميل بيانات البرنامج');
+          console.error('Error fetching program:', err);
         } finally {
-          setLoading(false);
+          setIsLoading(false);
         }
-      } else {
-        setLoading(false);
-      }
-    };
+      };
 
-    fetchProgramData();
+      fetchProgram();
+    }
   }, [id, isEditMode]);
 
   const validateForm = (): boolean => {
-    const newErrors: Partial<IProgramFormData> = {};
+    const newErrors: Partial<ProgramFormData> = {};
 
     if (!formData.name.trim()) {
       newErrors.name = 'اسم البرنامج مطلوب';
+    } else if (formData.name.length < 3) {
+      newErrors.name = 'اسم البرنامج يجب أن يكون 3 أحرف على الأقل';
     }
 
     if (!formData.description.trim()) {
       newErrors.description = 'وصف البرنامج مطلوب';
+    } else if (formData.description.length < 10) {
+      newErrors.description = 'وصف البرنامج يجب أن يكون 10 أحرف على الأقل';
     }
 
     setErrors(newErrors);
@@ -68,12 +88,9 @@ const AddEditProgram: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!validateForm()) {
-      return;
-    }
+    if (!validateForm()) return;
 
     setIsSubmitting(true);
-    setError(null);
 
     try {
       if (isEditMode && id) {
@@ -81,22 +98,22 @@ const AddEditProgram: React.FC = () => {
       } else {
         await api.programs.create(formData);
       }
-      navigate('/'); // Redirect to programs list or details page
-    } catch (err) {
-      console.error('Failed to save program:', err);
-      setError('فشل في حفظ البرنامج. يرجى المحاولة مرة أخرى.');
+      navigate('/');
+    } catch (err: any) {
+      console.error('Error saving program:', err);
+      alert(
+        err.response?.data?.message ||
+          err.message ||
+          'فشل في حفظ البرنامج. الرجاء المحاولة مرة أخرى.'
+      );
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  const handleCancel = () => {
-    navigate('/');
-  };
-
   const handleChange = (
-    field: keyof IProgramFormData,
-    value: string | ProgramType | ProgramStatus | undefined
+    field: keyof ProgramFormData,
+    value: string | ProgramTypeEnum | ProgramStatus
   ) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
     if (errors[field]) {
@@ -104,175 +121,96 @@ const AddEditProgram: React.FC = () => {
     }
   };
 
-  if (loading) {
-    return (
-      <div className='text-center py-8'>جاري تحميل بيانات البرنامج...</div>
-    );
+  const handleCancel = () => {
+    if (isSubmitting) return;
+
+    const hasChanges =
+      formData.name ||
+      formData.description !== '' ||
+      formData.type !== ProgramTypeEnum.SCIENTIFIC ||
+      formData.status !== ProgramStatus.ACTIVE;
+
+    if (hasChanges && !isEditMode) {
+      if (
+        window.confirm('هل أنت متأكد من الإلغاء؟ سيتم فقدان جميع التغييرات.')
+      ) {
+        navigate('/');
+      }
+    } else {
+      navigate('/');
+    }
+  };
+
+  if (isLoading) {
+    return <LoadingState />;
   }
 
-  if (error) {
-    return <div className='text-center py-8 text-red-600'>{error}</div>;
+  if (loadError) {
+    return (
+      <ErrorState error={loadError} onRetry={() => window.location.reload()} />
+    );
   }
 
   return (
     <div className='min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50'>
       <div className='container mx-auto px-4 py-8'>
-        {/* Header */}
-        <div className='mb-8'>
-          <button
-            onClick={handleCancel}
-            className='flex items-center gap-2 text-gray-600 hover:text-gray-900 mb-4 transition-colors duration-200'
-          >
-            <ArrowRight className='w-5 h-5' />
-            <span>العودة إلى القائمة</span>
-          </button>
+        <FormHeader
+          isEditMode={isEditMode}
+          onBack={() => navigate('/')}
+          disabled={isSubmitting}
+        />
 
-          <div className='bg-white rounded-xl shadow-lg p-6 border border-gray-100'>
-            <h1 className='text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-2 pb-2'>
-              {isEditMode ? 'تعديل البرنامج' : 'إضافة برنامج جديد'}
-            </h1>
-            <p className='text-gray-600'>
-              {isEditMode
-                ? 'قم بتعديل معلومات البرنامج'
-                : 'أدخل معلومات البرنامج الجديد'}
-            </p>
-          </div>
-        </div>
-
-        {/* Form */}
         <div className='bg-white rounded-xl shadow-lg p-8 border border-gray-100'>
           <form onSubmit={handleSubmit} className='space-y-6'>
-            {/* اسم البرنامج */}
-            <div>
-              <label className='block text-sm font-medium text-gray-700 mb-2'>
-                اسم البرنامج <span className='text-red-500'>*</span>
-              </label>
-              <input
-                type='text'
-                value={formData.name}
-                onChange={(e) => handleChange('name', e.target.value)}
-                className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 transition-all duration-200 ${
-                  errors.name
-                    ? 'border-red-300 focus:ring-red-500'
-                    : 'border-gray-300 focus:ring-blue-500'
-                }`}
-                placeholder='مثال: نادي الروبوت'
-              />
-              {errors.name && (
-                <p className='mt-1 text-sm text-red-600'>{errors.name}</p>
-              )}
-            </div>
+            <FormInputField
+              label='اسم البرنامج'
+              value={formData.name}
+              onChange={(value) => handleChange('name', value)}
+              placeholder='مثال: نادي الروبوت'
+              error={errors.name}
+              disabled={isSubmitting}
+              required
+            />
 
-            {/* نوع البرنامج */}
-            <div>
-              <label className='block text-sm font-medium text-gray-700 mb-2'>
-                نوع البرنامج <span className='text-red-500'>*</span>
-              </label>
-              <select
-                value={formData.type}
-                onChange={(e) =>
-                  handleChange('type', e.target.value as ProgramType)
-                }
-                className='w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200'
-              >
-                {Object.values(ProgramType).map((type) => (
-                  <option key={type} value={type}>
-                    {type}
-                  </option>
-                ))}
-              </select>
-            </div>
+            <FormSelectField
+              label='نوع البرنامج'
+              value={formData.type}
+              onChange={(value) =>
+                handleChange('type', value as ProgramTypeEnum)
+              }
+              options={typeOptions}
+              disabled={isSubmitting}
+              required
+            />
 
-            {/* وصف البرنامج */}
-            <div>
-              <label className='block text-sm font-medium text-gray-700 mb-2'>
-                وصف البرنامج <span className='text-red-500'>*</span>
-              </label>
-              <textarea
-                value={formData.description}
-                onChange={(e) => handleChange('description', e.target.value)}
-                rows={4}
-                className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 transition-all duration-200 resize-none ${
-                  errors.description
-                    ? 'border-red-300 focus:ring-red-500'
-                    : 'border-gray-300 focus:ring-blue-500'
-                }`}
-                placeholder='أدخل وصفاً مختصراً للبرنامج...'
-              />
-              {errors.description && (
-                <p className='mt-1 text-sm text-red-600'>
-                  {errors.description}
-                </p>
-              )}
-            </div>
+            <FormTextAreaField
+              label='وصف البرنامج'
+              value={formData.description}
+              onChange={(value) => handleChange('description', value)}
+              placeholder='أدخل وصفاً مختصراً للبرنامج...'
+              error={errors.description}
+              disabled={isSubmitting}
+              required
+              rows={4}
+              showCharCount
+            />
 
-            {/* حالة البرنامج */}
-            <div>
-              <label className='block text-sm font-medium text-gray-700 mb-2'>
-                حالة البرنامج <span className='text-red-500'>*</span>
-              </label>
-              <select
-                value={formData.status}
-                onChange={(e) =>
-                  handleChange('status', e.target.value as ProgramStatus)
-                }
-                className='w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200'
-              >
-                {Object.values(ProgramStatus).map((status) => (
-                  <option key={status} value={status}>
-                    {status}
-                  </option>
-                ))}
-              </select>
-            </div>
+            <FormSelectField
+              label='حالة البرنامج'
+              value={formData.status}
+              onChange={(value) =>
+                handleChange('status', value as ProgramStatus)
+              }
+              options={statusOptions}
+              disabled={isSubmitting}
+              required
+            />
 
-            {/* معلومات إضافية */}
-            <div className='bg-blue-50 border border-blue-200 rounded-lg p-4'>
-              <h3 className='text-sm font-semibold text-blue-900 mb-2'>
-                ملاحظة
-              </h3>
-              <p className='text-sm text-blue-700'>
-                بعد إنشاء البرنامج، يمكنك إضافة المرشد والطلاب والجدول الزمني من
-                صفحة تفاصيل البرنامج.
-              </p>
-            </div>
-
-            {/* Action Buttons */}
-            <div className='flex gap-4 pt-6 border-t border-gray-200'>
-              <Button
-                type='submit'
-                variant='primary'
-                disabled={isSubmitting}
-                className='flex-1 py-3 text-base font-semibold'
-              >
-                {isSubmitting ? (
-                  <div className='flex items-center justify-center gap-2'>
-                    <div className='w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin'></div>
-                    <span>جاري الحفظ...</span>
-                  </div>
-                ) : (
-                  <div className='flex items-center justify-center gap-2'>
-                    <Save className='w-5 h-5' />
-                    <span>
-                      {isEditMode ? 'حفظ التعديلات' : 'إضافة البرنامج'}
-                    </span>
-                  </div>
-                )}
-              </Button>
-
-              <Button
-                type='button'
-                variant='secondary'
-                onClick={handleCancel}
-                disabled={isSubmitting}
-                className='flex-1 py-3 text-base font-semibold'
-              >
-                <div className='flex items-center justify-center gap-2'>
-                  <X className='w-5 h-5' />
-                  <span>إلغاء</span>
-                </div>
-              </Button>
-            </div>
+            <FormActionButtons
+              isEditMode={isEditMode}
+              isSubmitting={isSubmitting}
+              onCancel={handleCancel}
+            />
           </form>
         </div>
       </div>
