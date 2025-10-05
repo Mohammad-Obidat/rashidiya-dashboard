@@ -2,8 +2,15 @@ import React, { useEffect, useState, useMemo } from 'react';
 import { api } from '../lib/apiClient';
 import type { Session, Program } from '../types/program';
 import Button from '../components/common/Button';
-import { FileDown, Calendar as CalendarIcon, Clock, MapPin } from 'lucide-react';
+import {
+  FileDown,
+  Calendar as CalendarIcon,
+  Clock,
+  MapPin,
+} from 'lucide-react';
 import { exportToXLSX, exportToPDF } from '../lib/exportUtils';
+import LoadingState from '../components/LoadingState';
+import ErrorState from '../components/ErrorState';
 
 const Schedule: React.FC = () => {
   const [sessions, setSessions] = useState<Session[]>([]);
@@ -33,7 +40,8 @@ const Schedule: React.FC = () => {
     fetchData();
   }, []);
 
-  const getProgramName = (programId: string) => programs.find(p => p.id === programId)?.name || 'غير معروف';
+  const getProgramName = (programId: string) =>
+    programs.find((p) => p.id === programId)?.name || 'غير معروف';
 
   const sessionsByDate = useMemo(() => {
     return sessions.reduce((acc, session) => {
@@ -47,19 +55,19 @@ const Schedule: React.FC = () => {
   }, [sessions]);
 
   const handleExportXLSX = () => {
-    const dataToExport = sessions.map(s => ({
-      'البرنامج': getProgramName(s.programId),
-      'التاريخ': s.date,
+    const dataToExport = sessions.map((s) => ({
+      البرنامج: getProgramName(s.programId),
+      التاريخ: s.date,
       'وقت البدء': s.startTime,
       'وقت الانتهاء': s.endTime,
-      'الموقع': s.location,
+      الموقع: s.location,
     }));
     exportToXLSX(dataToExport, 'Schedule', 'الجدول الزمني');
   };
 
   const handleExportPDF = () => {
     const headers = ['البرنامج', 'التاريخ', 'الوقت', 'الموقع'];
-    const body = sessions.map(s => [
+    const body = sessions.map((s) => [
       getProgramName(s.programId),
       s.date,
       `${s.startTime} - ${s.endTime}`,
@@ -68,19 +76,29 @@ const Schedule: React.FC = () => {
     exportToPDF(headers, body, 'الجدول الزمني');
   };
 
-  if (loading) return <div className="p-6 text-center">جاري التحميل...</div>;
-  if (error) return <div className="p-6 text-center text-red-500">{error}</div>;
+  if (loading) return <LoadingState />;
+  if (error) return <ErrorState error={error} />;
 
   return (
-    <div className="p-6 bg-gray-50 min-h-screen">
-      <div className="flex justify-between items-center mb-6">
-        <h2 className="text-3xl font-bold text-gray-800">الجدول الزمني للبرامج</h2>
-        <div className="flex gap-2">
-          <Button onClick={handleExportXLSX} variant="secondary" className="flex items-center gap-2">
+    <div className='p-6 bg-gray-50 min-h-screen'>
+      <div className='flex justify-between items-center mb-6'>
+        <h2 className='text-3xl font-bold text-gray-800'>
+          الجدول الزمني للبرامج
+        </h2>
+        <div className='flex gap-2'>
+          <Button
+            onClick={handleExportXLSX}
+            variant='secondary'
+            className='flex items-center gap-2'
+          >
             <FileDown size={18} />
             تصدير XLSX
           </Button>
-          <Button onClick={handleExportPDF} variant="secondary" className="flex items-center gap-2">
+          <Button
+            onClick={handleExportPDF}
+            variant='secondary'
+            className='flex items-center gap-2'
+          >
             <FileDown size={18} />
             تصدير PDF
           </Button>
@@ -88,17 +106,34 @@ const Schedule: React.FC = () => {
       </div>
 
       {/* For simplicity, a list view is implemented. A full calendar view would require a library like FullCalendar. */}
-      <div className="bg-white p-6 rounded-lg shadow-sm">
+      <div className='bg-white p-6 rounded-lg shadow-sm'>
         {Object.entries(sessionsByDate).map(([date, dateSessions]) => (
-          <div key={date} className="mb-8">
-            <h3 className="text-xl font-bold mb-4 border-b pb-2">{new Date(date).toLocaleDateString('ar-EG', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</h3>
-            <div className="space-y-4">
-              {dateSessions.map(session => (
-                <div key={session.id} className="p-4 border rounded-lg hover:bg-gray-50">
-                  <h4 className="font-bold text-lg">{getProgramName(session.programId)}</h4>
-                  <div className="flex items-center gap-4 text-gray-600 mt-2">
-                    <div className="flex items-center gap-2"><Clock size={16}/> {session.startTime} - {session.endTime}</div>
-                    <div className="flex items-center gap-2"><MapPin size={16}/> {session.location}</div>
+          <div key={date} className='mb-8'>
+            <h3 className='text-xl font-bold mb-4 border-b pb-2'>
+              {new Date(date).toLocaleDateString('ar-EG', {
+                weekday: 'long',
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric',
+              })}
+            </h3>
+            <div className='space-y-4'>
+              {dateSessions.map((session) => (
+                <div
+                  key={session.id}
+                  className='p-4 border rounded-lg hover:bg-gray-50'
+                >
+                  <h4 className='font-bold text-lg'>
+                    {getProgramName(session.programId)}
+                  </h4>
+                  <div className='flex items-center gap-4 text-gray-600 mt-2'>
+                    <div className='flex items-center gap-2'>
+                      <Clock size={16} /> {session.startTime} -{' '}
+                      {session.endTime}
+                    </div>
+                    <div className='flex items-center gap-2'>
+                      <MapPin size={16} /> {session.location}
+                    </div>
                   </div>
                 </div>
               ))}

@@ -3,10 +3,11 @@ import Button from './common/Button';
 
 interface ErrorStateProps {
   error: string;
-  onRetry: () => void;
 }
 
-const ErrorState: React.FC<ErrorStateProps> = ({ error, onRetry }) => {
+const onRetry = () => window.location.reload();
+
+const ErrorState: React.FC<ErrorStateProps> = ({ error }) => {
   return (
     <div className='min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 flex items-center justify-center'>
       <div className='bg-white rounded-xl shadow-lg p-8 max-w-md'>

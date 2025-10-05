@@ -97,15 +97,8 @@ const Dashboard: React.FC = () => {
     setFilterStatus('all');
   };
 
-  if (loading) {
-    return <LoadingState />;
-  }
-
-  if (error) {
-    return (
-      <ErrorState error={error} onRetry={() => window.location.reload()} />
-    );
-  }
+  if (loading) return <LoadingState />;
+  if (error) return <ErrorState error={error} />;
 
   const hasActiveFilters =
     searchTerm || filterType !== 'all' || filterStatus !== 'all';

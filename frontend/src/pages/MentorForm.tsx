@@ -5,17 +5,21 @@ import type { CreateAdvisorDto, UpdateAdvisorDto } from '../types/program';
 import Button from '../components/common/Button';
 import Input from '../components/common/Input';
 import { Save, ArrowRight, UserPlus, Edit } from 'lucide-react';
+import LoadingState from '../components/LoadingState';
+import ErrorState from '../components/ErrorState';
 
 const MentorForm: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const isEditMode = !!id;
 
-  const [formData, setFormData] = useState<CreateAdvisorDto | UpdateAdvisorDto>({
-    name: '',
-    email: '',
-    phone: '',
-  });
+  const [formData, setFormData] = useState<CreateAdvisorDto | UpdateAdvisorDto>(
+    {
+      name: '',
+      email: '',
+      phone: '',
+    }
+  );
   const [loading, setLoading] = useState(isEditMode);
   const [error, setError] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
@@ -42,7 +46,7 @@ const MentorForm: React.FC = () => {
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -64,32 +68,75 @@ const MentorForm: React.FC = () => {
     }
   };
 
-  if (loading) return <div className="p-6 text-center">جاري التحميل...</div>;
+  if (loading) return <LoadingState />;
+  if (error) return <ErrorState error={error} />;
 
   return (
-    <div className="p-6 bg-gray-50 min-h-screen">
-      <div className="flex items-center gap-4 mb-6">
-        <Button onClick={() => navigate('/mentors')} variant="secondary" className="h-10 w-10 p-0 flex items-center justify-center">
+    <div className='p-6 bg-gray-50 min-h-screen'>
+      <div className='flex items-center gap-4 mb-6'>
+        <Button
+          onClick={() => navigate('/mentors')}
+          variant='secondary'
+          className='h-10 w-10 p-0 flex items-center justify-center'
+        >
           <ArrowRight size={20} />
         </Button>
-        <h2 className="text-3xl font-bold text-gray-800">
-          {isEditMode ? <Edit className="inline-block ml-2"/> : <UserPlus className="inline-block ml-2"/>} 
+        <h2 className='text-3xl font-bold text-gray-800'>
+          {isEditMode ? (
+            <Edit className='inline-block ml-2' />
+          ) : (
+            <UserPlus className='inline-block ml-2' />
+          )}
           {isEditMode ? 'تعديل بيانات مشرف' : 'إضافة مشرف جديد'}
         </h2>
       </div>
 
-      <form onSubmit={handleSubmit} className="bg-white p-8 rounded-lg shadow-md max-w-2xl mx-auto">
-        {error && <div className="bg-red-100 text-red-700 p-3 rounded-md mb-6">{error}</div>}
-        
-        <div className="space-y-6">
-          <Input name="name" label="الاسم الكامل" value={formData.name} onChange={handleChange} required />
-          <Input type="email" name="email" label="البريد الإلكتروني" value={formData.email} onChange={handleChange} required />
-          <Input name="phone" label="رقم الهاتف" value={formData.phone} onChange={handleChange} required />
+      <form
+        onSubmit={handleSubmit}
+        className='bg-white p-8 rounded-lg shadow-md max-w-2xl mx-auto'
+      >
+        {error && <ErrorState error={error} />}
+
+        <div className='space-y-6'>
+          <Input
+            name='name'
+            label='الاسم الكامل'
+            value={formData.name}
+            onChange={handleChange}
+            required
+          />
+          <Input
+            type='email'
+            name='email'
+            label='البريد الإلكتروني'
+            value={formData.email}
+            onChange={handleChange}
+            required
+          />
+          <Input
+            name='phone'
+            label='رقم الهاتف'
+            value={formData.phone}
+            onChange={handleChange}
+            required
+          />
         </div>
 
-        <div className="mt-8 flex justify-end gap-4">
-          <Button type="button" variant="secondary" onClick={() => navigate('/mentors')} disabled={isSaving}>إلغاء</Button>
-          <Button type="submit" variant="primary" disabled={isSaving} className="flex items-center gap-2">
+        <div className='mt-8 flex justify-end gap-4'>
+          <Button
+            type='button'
+            variant='secondary'
+            onClick={() => navigate('/mentors')}
+            disabled={isSaving}
+          >
+            إلغاء
+          </Button>
+          <Button
+            type='submit'
+            variant='primary'
+            disabled={isSaving}
+            className='flex items-center gap-2'
+          >
             <Save size={18} />
             {isSaving ? 'جاري الحفظ...' : 'حفظ'}
           </Button>
@@ -99,4 +146,5 @@ const MentorForm: React.FC = () => {
   );
 };
 
-export default MentorForm; MentorForm;
+export default MentorForm;
+MentorForm;

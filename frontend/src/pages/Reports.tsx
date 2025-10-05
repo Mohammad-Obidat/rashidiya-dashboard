@@ -2,8 +2,17 @@ import React, { useEffect, useState, useMemo } from 'react';
 import { api } from '../lib/apiClient';
 import type { Program, Student, AttendanceRecord } from '../types/program';
 import Button from '../components/common/Button';
-import { FileDown, PieChart, BarChart, Users, Activity, ClipboardCheck } from 'lucide-react';
+import {
+  FileDown,
+  PieChart,
+  BarChart,
+  Users,
+  Activity,
+  ClipboardCheck,
+} from 'lucide-react';
 import { exportToXLSX, exportToPDF } from '../lib/exportUtils';
+import LoadingState from '../components/LoadingState';
+import ErrorState from '../components/ErrorState';
 
 const Reports: React.FC = () => {
   const [programs, setPrograms] = useState<Program[]>([]);
@@ -56,69 +65,85 @@ const Reports: React.FC = () => {
 
   const handleGeneralReportExport = () => {
     const data = [
-      { 'المقياس': 'إجمالي البرامج', 'القيمة': totalPrograms },
-      { 'المقياس': 'إجمالي الطلاب', 'القيمة': totalStudents },
-      { 'المقياس': 'إجمالي سجلات الحضور', 'القيمة': totalAttendance },
+      { المقياس: 'إجمالي البرامج', القيمة: totalPrograms },
+      { المقياس: 'إجمالي الطلاب', القيمة: totalStudents },
+      { المقياس: 'إجمالي سجلات الحضور', القيمة: totalAttendance },
     ];
     exportToXLSX(data, 'GeneralReport', 'تقرير عام');
   };
 
-  if (loading) return <div className="p-6 text-center">جاري التحميل...</div>;
-  if (error) return <div className="p-6 text-center text-red-500">{error}</div>;
+  if (loading) return <LoadingState />;
+  if (error) return <ErrorState error={error} />;
 
   return (
-    <div className="p-6 bg-gray-50 min-h-screen">
-      <div className="flex justify-between items-center mb-6">
-        <h2 className="text-3xl font-bold text-gray-800">التقارير والإحصائيات</h2>
-        <Button onClick={handleGeneralReportExport} variant="primary" className="flex items-center gap-2">
+    <div className='p-6 bg-gray-50 min-h-screen'>
+      <div className='flex justify-between items-center mb-6'>
+        <h2 className='text-3xl font-bold text-gray-800'>
+          التقارير والإحصائيات
+        </h2>
+        <Button
+          onClick={handleGeneralReportExport}
+          variant='primary'
+          className='flex items-center gap-2'
+        >
           <FileDown size={18} />
           تصدير تقرير عام
         </Button>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-        <div className="bg-white p-6 rounded-lg shadow-sm flex items-center gap-4">
-          <div className="p-3 bg-blue-100 rounded-full"><Activity size={24} className="text-blue-600"/></div>
+      <div className='grid grid-cols-1 md:grid-cols-3 gap-6 mb-6'>
+        <div className='bg-white p-6 rounded-lg shadow-sm flex items-center gap-4'>
+          <div className='p-3 bg-blue-100 rounded-full'>
+            <Activity size={24} className='text-blue-600' />
+          </div>
           <div>
-            <div className="text-gray-500">إجمالي البرامج</div>
-            <div className="text-3xl font-bold">{totalPrograms}</div>
+            <div className='text-gray-500'>إجمالي البرامج</div>
+            <div className='text-3xl font-bold'>{totalPrograms}</div>
           </div>
         </div>
-        <div className="bg-white p-6 rounded-lg shadow-sm flex items-center gap-4">
-          <div className="p-3 bg-green-100 rounded-full"><Users size={24} className="text-green-600"/></div>
+        <div className='bg-white p-6 rounded-lg shadow-sm flex items-center gap-4'>
+          <div className='p-3 bg-green-100 rounded-full'>
+            <Users size={24} className='text-green-600' />
+          </div>
           <div>
-            <div className="text-gray-500">إجمالي الطلاب</div>
-            <div className="text-3xl font-bold">{totalStudents}</div>
+            <div className='text-gray-500'>إجمالي الطلاب</div>
+            <div className='text-3xl font-bold'>{totalStudents}</div>
           </div>
         </div>
-        <div className="bg-white p-6 rounded-lg shadow-sm flex items-center gap-4">
-          <div className="p-3 bg-purple-100 rounded-full"><ClipboardCheck size={24} className="text-purple-600"/></div>
+        <div className='bg-white p-6 rounded-lg shadow-sm flex items-center gap-4'>
+          <div className='p-3 bg-purple-100 rounded-full'>
+            <ClipboardCheck size={24} className='text-purple-600' />
+          </div>
           <div>
-            <div className="text-gray-500">إجمالي الحضور</div>
-            <div className="text-3xl font-bold">{totalAttendance}</div>
+            <div className='text-gray-500'>إجمالي الحضور</div>
+            <div className='text-3xl font-bold'>{totalAttendance}</div>
           </div>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="bg-white p-6 rounded-lg shadow-sm">
-          <h3 className="text-xl font-bold mb-4 flex items-center gap-2"><PieChart/> توزيع البرامج حسب النوع</h3>
-          <div className="space-y-2">
+      <div className='grid grid-cols-1 lg:grid-cols-2 gap-6'>
+        <div className='bg-white p-6 rounded-lg shadow-sm'>
+          <h3 className='text-xl font-bold mb-4 flex items-center gap-2'>
+            <PieChart /> توزيع البرامج حسب النوع
+          </h3>
+          <div className='space-y-2'>
             {programsByType.map(({ type, count }) => (
-              <div key={type} className="flex justify-between items-center">
+              <div key={type} className='flex justify-between items-center'>
                 <span>{type}</span>
-                <span className="font-bold">{count}</span>
+                <span className='font-bold'>{count}</span>
               </div>
             ))}
           </div>
         </div>
-        <div className="bg-white p-6 rounded-lg shadow-sm">
-          <h3 className="text-xl font-bold mb-4 flex items-center gap-2"><BarChart/> توزيع الطلاب حسب الصف</h3>
-          <div className="space-y-2">
+        <div className='bg-white p-6 rounded-lg shadow-sm'>
+          <h3 className='text-xl font-bold mb-4 flex items-center gap-2'>
+            <BarChart /> توزيع الطلاب حسب الصف
+          </h3>
+          <div className='space-y-2'>
             {studentsByGrade.map(({ grade, count }) => (
-              <div key={grade} className="flex justify-between items-center">
+              <div key={grade} className='flex justify-between items-center'>
                 <span>الصف {grade}</span>
-                <span className="font-bold">{count}</span>
+                <span className='font-bold'>{count}</span>
               </div>
             ))}
           </div>

@@ -5,6 +5,8 @@ import { ArrowRight, Save, X } from 'lucide-react';
 import { ProgramTypeEnum, ProgramStatus } from '../types/program';
 import type { CreateProgramDto } from '../types/program';
 import { api } from '../lib/apiClient';
+import LoadingState from '../components/LoadingState';
+import ErrorState from '../components/ErrorState';
 
 const AddEditProgram: React.FC = () => {
   const navigate = useNavigate();
@@ -104,15 +106,8 @@ const AddEditProgram: React.FC = () => {
     }
   };
 
-  if (loading) {
-    return (
-      <div className='text-center py-8'>جاري تحميل بيانات البرنامج...</div>
-    );
-  }
-
-  if (error) {
-    return <div className='text-center py-8 text-red-600'>{error}</div>;
-  }
+  if (loading) return <LoadingState />;
+  if (error) return <ErrorState error={error} />;
 
   return (
     <div className='min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50'>

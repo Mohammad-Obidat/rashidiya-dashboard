@@ -21,6 +21,8 @@ import {
   ClipboardCheck,
   Info,
 } from 'lucide-react';
+import LoadingState from '../components/LoadingState';
+import ErrorState from '../components/ErrorState';
 
 const ProgramDetails: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -182,8 +184,8 @@ const ProgramDetails: React.FC = () => {
     </div>
   );
 
-  if (loading) return <div className='p-6 text-center'>جاري التحميل...</div>;
-  if (error) return <div className='p-6 text-center text-red-500'>{error}</div>;
+  if (loading) return <LoadingState />;
+  if (error) return <ErrorState error={error} />;
   if (!program)
     return <div className='p-6 text-center'>لم يتم العثور على البرنامج.</div>;
 

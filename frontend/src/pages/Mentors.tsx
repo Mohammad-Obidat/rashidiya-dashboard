@@ -7,6 +7,8 @@ import Input from '../components/common/Input';
 import Modal from '../components/common/Modal';
 import { PlusCircle, Search, FileDown, Trash2, Edit } from 'lucide-react';
 import { exportToXLSX, exportToPDF } from '../lib/exportUtils';
+import LoadingState from '../components/LoadingState';
+import ErrorState from '../components/ErrorState';
 
 const Mentors: React.FC = () => {
   const navigate = useNavigate();
@@ -80,8 +82,8 @@ const Mentors: React.FC = () => {
     exportToPDF(headers, body, 'قائمة المشرفين');
   };
 
-  if (loading) return <div className='p-6 text-center'>جاري التحميل...</div>;
-  if (error) return <div className='p-6 text-center text-red-500'>{error}</div>;
+  if (loading) return <LoadingState />;
+  if (error) return <ErrorState error={error} />;
 
   return (
     <div className='p-6 bg-gray-50 min-h-screen'>
