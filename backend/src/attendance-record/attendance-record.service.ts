@@ -30,6 +30,19 @@ export class AttendanceRecordService {
     return attendanceRecord;
   }
 
+  async findByProgram(programId: string) {
+    return this.prisma.attendanceRecord.findMany({
+      where: {
+        session: { programId },
+      },
+      include: {
+        student: true,
+        session: true,
+      },
+      orderBy: { date: 'desc' },
+    });
+  }
+
   async update(
     id: string,
     updateAttendanceRecordDto: UpdateAttendanceRecordDto,

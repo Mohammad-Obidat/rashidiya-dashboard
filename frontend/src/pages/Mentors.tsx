@@ -1,88 +1,212 @@
-import { useEffect, useState } from 'react';
-import { api } from '../lib/apiClient';
-import type { AdvisorType } from '../lib/apiClient';
+import React, { useEffect, useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { api } from '../lib/apiClient';
+import type { Advisor } from '../types/program';
+import Button from '../components/common/Button';
+import Input from '../components/common/Input';
+import Modal from '../components/common/Modal';
+import { PlusCircle, Search, FileDown, Trash2, Edit } from 'lucide-react';
+import { exportToXLSX, exportToPDF } from '../lib/exportUtils';
 
-export default function Mentors() {
-  const [advisors, setAdvisors] = useState<AdvisorType[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null);
+const Mentors: React.FC = () => {
   const navigate = useNavigate();
+  const [mentors, setMentors] = useState<Advisor[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [mentorToDelete, setMentorToDelete] = useState<string | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   useEffect(() => {
-    const fetchAdvisors = async () => {
+    const fetchMentors = async () => {
       try {
         setLoading(true);
-        const fetchedAdvisors = await api.advisors.list();
-        setAdvisors(fetchedAdvisors);
-      } catch (err) {
-        console.error('Failed to fetch advisors:', err);
-        setError('Failed to load advisors.');
+        setError(null);
+        const data = await api.advisors.list();
+        setMentors(data);
+      } catch (err: any) {
+        setError(err.message || 'فشل في تحميل المشرفين');
       } finally {
         setLoading(false);
       }
     };
-
-    fetchAdvisors();
+    fetchMentors();
   }, []);
 
-  if (loading) {
-    return <div className='text-center py-8'>جاري تحميل المرشدين...</div>;
-  }
+  const filteredMentors = useMemo(
+    () =>
+      mentors.filter(
+        (mentor) =>
+          mentor.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          mentor.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          mentor.phone.includes(searchTerm)
+      ),
+    [mentors, searchTerm]
+  );
 
-  if (error) {
-    return <div className='text-center py-8 text-red-600'>{error}</div>;
-  }
+  const handleDeleteClick = (id: string) => {
+    setMentorToDelete(id);
+    setDeleteModalOpen(true);
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!mentorToDelete) return;
+    setIsDeleting(true);
+    try {
+      await api.advisors.remove(mentorToDelete);
+      setMentors(mentors.filter((m) => m.id !== mentorToDelete));
+      setDeleteModalOpen(false);
+      setMentorToDelete(null);
+    } catch (err: any) {
+      setError('فشل في حذف المشرف');
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
+  const handleExportXLSX = () => {
+    const dataToExport = filteredMentors.map((m) => ({
+      الاسم: m.name,
+      'البريد الإلكتروني': m.email,
+      'رقم الهاتف': m.phone,
+    }));
+    exportToXLSX(dataToExport, 'Mentors', 'قائمة المشرفين');
+  };
+
+  const handleExportPDF = () => {
+    const headers = ['الاسم', 'البريد الإلكتروني', 'رقم الهاتف'];
+    const body = filteredMentors.map((m) => [m.name, m.email, m.phone]);
+    exportToPDF(headers, body, 'قائمة المشرفين');
+  };
+
+  if (loading) return <div className='p-6 text-center'>جاري التحميل...</div>;
+  if (error) return <div className='p-6 text-center text-red-500'>{error}</div>;
 
   return (
-    <div className='p-6'>
-      <div className='flex items-center justify-between mb-4'>
-        <h2 className='text-xl font-semibold'>المرشدون</h2>
-        <button
+    <div className='p-6 bg-gray-50 min-h-screen'>
+      <div className='flex justify-between items-center mb-6'>
+        <h2 className='text-3xl font-bold text-gray-800'>قائمة المشرفين</h2>
+        <Button
           onClick={() => navigate('/mentors/new')}
-          className='px-4 py-2 bg-indigo-600 text-white rounded'
+          variant='primary'
+          className='flex items-center gap-2'
         >
-          إضافة مرشد
-        </button>
+          <PlusCircle size={20} />
+          إضافة مشرف جديد
+        </Button>
       </div>
 
-      <div className='bg-white rounded shadow overflow-hidden'>
+      <div className='bg-white p-4 rounded-lg shadow-sm mb-6 flex justify-between items-center'>
+        <div className='relative w-full max-w-md'>
+          <Input
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            placeholder='ابحث بالاسم، البريد الإلكتروني، أو الهاتف...'
+            className='pl-10'
+          />
+          <Search
+            size={20}
+            className='absolute left-3 top-1/2 -translate-y-1/2 text-gray-400'
+          />
+        </div>
+        <div className='flex gap-2'>
+          <Button
+            onClick={handleExportXLSX}
+            variant='secondary'
+            className='flex items-center gap-2'
+          >
+            <FileDown size={18} />
+            تصدير XLSX
+          </Button>
+          <Button
+            onClick={handleExportPDF}
+            variant='secondary'
+            className='flex items-center gap-2'
+          >
+            <FileDown size={18} />
+            تصدير PDF
+          </Button>
+        </div>
+      </div>
+
+      <div className='bg-white rounded-lg shadow overflow-x-auto'>
         <table className='w-full text-right'>
-          <thead className='bg-gray-50 text-sm text-gray-600'>
+          <thead className='bg-gray-100 text-gray-600 uppercase text-sm'>
             <tr>
-              <th className='p-3'>الاسم</th>
-              <th className='p-3'>الهاتف</th>
-              <th className='p-3'>البريد</th>
-              <th className='p-3'>الإجراءات</th>
+              <th className='p-4'>الاسم</th>
+              <th className='p-4'>البريد الإلكتروني</th>
+              <th className='p-4'>رقم الهاتف</th>
+              <th className='p-4 text-center'>إجراءات</th>
             </tr>
           </thead>
-          <tbody>
-            {advisors.map((m) => (
-              <tr key={m.id} className='border-t'>
-                <td className='p-3'>{m.name}</td>
-                <td className='p-3'>{m.phone}</td>
-                <td className='p-3'>{m.email}</td>
-                <td className='p-3'>
-                  <div className='flex gap-2 justify-end'>
-                    <button
-                      onClick={() => navigate(`/mentors/${m.id}`)}
-                      className='px-3 py-1 border rounded'
-                    >
-                      عرض
-                    </button>
-                    <button
-                      onClick={() => navigate(`/mentors/${m.id}/edit`)}
-                      className='px-3 py-1 border rounded'
-                    >
-                      تعديل
-                    </button>
-                  </div>
+          <tbody className='text-gray-700'>
+            {filteredMentors.map((mentor) => (
+              <tr
+                key={mentor.id}
+                className='border-b border-gray-200 hover:bg-gray-50'
+              >
+                <td className='p-4 font-medium'>{mentor.name}</td>
+                <td className='p-4'>{mentor.email}</td>
+                <td className='p-4'>{mentor.phone}</td>
+                <td className='p-4 flex justify-center gap-2'>
+                  <Button
+                    onClick={() => navigate(`/mentors/edit/${mentor.id}`)}
+                    variant='secondary'
+                    className='h-8 w-8 p-0 flex items-center justify-center'
+                  >
+                    <div className='bg-white/10 backdrop-blur-sm p-2 rounded-xl group-hover:bg-white/20 transition-all duration-300 group-hover:scale-110'>
+                      <Edit size={16} />
+                    </div>
+                  </Button>
+                  <Button
+                    onClick={() => handleDeleteClick(mentor.id)}
+                    variant='danger'
+                    className='h-8 w-8 p-0 flex items-center justify-center'
+                  >
+                    <div className='bg-white/10 backdrop-blur-sm p-2 rounded-xl group-hover:bg-white/20 transition-all duration-300 group-hover:scale-110'>
+                      <Trash2 size={16} />
+                    </div>
+                  </Button>
                 </td>
               </tr>
             ))}
           </tbody>
         </table>
+        {filteredMentors.length === 0 && (
+          <div className='text-center p-8 text-gray-500'>
+            لا يوجد مشرفين لعرضهم.
+          </div>
+        )}
       </div>
+
+      <Modal
+        isOpen={deleteModalOpen}
+        onClose={() => setDeleteModalOpen(false)}
+        title='تأكيد الحذف'
+        footer={
+          <>
+            <Button
+              variant='secondary'
+              onClick={() => setDeleteModalOpen(false)}
+              disabled={isDeleting}
+            >
+              إلغاء
+            </Button>
+            <Button
+              variant='danger'
+              onClick={handleDeleteConfirm}
+              disabled={isDeleting}
+            >
+              {isDeleting ? 'جاري الحذف...' : 'حذف'}
+            </Button>
+          </>
+        }
+      >
+        <p>هل أنت متأكد من حذف هذا المشرف؟ لا يمكن التراجع عن هذا الإجراء.</p>
+      </Modal>
     </div>
   );
-}
+};
+
+export default Mentors;

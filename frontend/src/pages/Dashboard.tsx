@@ -29,9 +29,11 @@ const Dashboard: React.FC = () => {
   const [programToDelete, setProgramToDelete] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
 
+  // Get dropdown options
   const statusOptions = getAllStatuses();
   const typeOptions = getAllTypes();
 
+  // Fetch programs from API
   useEffect(() => {
     const fetchPrograms = async () => {
       try {
@@ -64,7 +66,6 @@ const Dashboard: React.FC = () => {
 
   const handleView = (id: string) => navigate(`/program/${id}`);
   const handleEdit = (id: string) => navigate(`/program/edit/${id}`);
-  const handleAddProgram = () => navigate('/program/new');
 
   const handleDeleteClick = (id: string) => {
     setProgramToDelete(id);
@@ -87,6 +88,8 @@ const Dashboard: React.FC = () => {
       setIsDeleting(false);
     }
   };
+
+  const handleAddProgram = () => navigate('/program/new');
 
   const handleResetFilters = () => {
     setSearchTerm('');

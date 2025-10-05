@@ -19,7 +19,7 @@ const Header: React.FC = () => {
     <header className='bg-gradient-to-r from-blue-600 via-blue-700 to-indigo-700 text-white shadow-lg'>
       <div className='container mx-auto px-4 py-4'>
         <div className='flex items-center'>
-          <Link to='/' className='flex items-center gap-3 group'>
+          <Link to='/programs' className='flex items-center gap-3 group'>
             <div className='bg-white/10 backdrop-blur-sm p-2 rounded-xl group-hover:bg-white/20 transition-all duration-300 group-hover:scale-110'>
               <GraduationCap className='w-8 h-8' />
             </div>

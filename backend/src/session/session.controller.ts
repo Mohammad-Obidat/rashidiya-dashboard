@@ -33,6 +33,11 @@ export class SessionController {
     return this.sessionService.findOne(id);
   }
 
+  @Get('program/:programId')
+  async findByProgram(@Param('programId') programId: string) {
+    return this.sessionService.findByProgram(programId);
+  }
+
   @Patch(':id')
   update(@Param('id') id: string, @Body() updateSessionDto: UpdateSessionDto) {
     return this.sessionService.update(id, updateSessionDto);

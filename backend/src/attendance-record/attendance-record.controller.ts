@@ -35,6 +35,11 @@ export class AttendanceRecordController {
     return this.attendanceRecordService.findOne(id);
   }
 
+  @Get('program/:programId')
+  async findByProgram(@Param('programId') programId: string) {
+    return this.attendanceRecordService.findByProgram(programId);
+  }
+
   @Patch(':id')
   update(
     @Param('id') id: string,

@@ -28,6 +28,13 @@ export class SessionService {
     return session;
   }
 
+  async findByProgram(programId: string) {
+    return this.prisma.session.findMany({
+      where: { programId },
+      orderBy: { date: 'desc' },
+    });
+  }
+
   async update(id: string, updateSessionDto: UpdateSessionDto) {
     const session = await this.prisma.session.findUnique({ where: { id } });
     if (!session) {

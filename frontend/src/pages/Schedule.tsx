@@ -1,355 +1,113 @@
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { api } from '../lib/apiClient';
-import type { SessionType, RecurrencePatternType } from '../lib/apiClient';
+import type { Session, Program } from '../types/program';
 import Button from '../components/common/Button';
-import Modal from '../components/common/Modal';
-import Input from '../components/common/Input';
-import { Plus, Edit2, Trash2 } from 'lucide-react';
+import { FileDown, Calendar as CalendarIcon, Clock, MapPin } from 'lucide-react';
+import { exportToXLSX, exportToPDF } from '../lib/exportUtils';
 
-export default function SchedulePage() {
-  const [sessions, setSessions] = useState<SessionType[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
+const Schedule: React.FC = () => {
+  const [sessions, setSessions] = useState<Session[]>([]);
+  const [programs, setPrograms] = useState<Program[]>([]);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [editingSession, setEditingSession] = useState<SessionType | null>(
-    null
-  );
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
-  const [sessionToDelete, setSessionToDelete] = useState<string | null>(null);
-
-  const fetchSessions = async () => {
-    try {
-      setLoading(true);
-      const fetchedSessions = await api.sessions.list();
-      setSessions(fetchedSessions);
-    } catch (err) {
-      console.error('Failed to fetch sessions:', err);
-      setError('Failed to load sessions.');
-    } finally {
-      setLoading(false);
-    }
-  };
+  const [viewMode, setViewMode] = useState<'calendar' | 'list'>('calendar');
+  const [selectedDate, setSelectedDate] = useState(new Date());
 
   useEffect(() => {
-    fetchSessions();
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        const [sessData, progData] = await Promise.all([
+          api.sessions.list(),
+          api.programs.list(),
+        ]);
+        setSessions(sessData);
+        setPrograms(progData);
+      } catch (err: any) {
+        setError(err.message || 'فشل في تحميل الجدول الزمني');
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchData();
   }, []);
 
-  const startAdd = () => {
-    setEditingSession({
-      id: '',
-      programId: '', // This needs to be selected or passed somehow, for now, empty.
-      date: new Date(),
-      startTime: '16:00',
-      endTime: '17:00',
-      location: '',
-      isRecurring: false,
-      recurrencePattern: undefined,
-      notes: '',
-      createdAt: new Date(), // Dummy value, will be set by backend
-      updatedAt: new Date(), // Dummy value, will be set by backend
-    });
-    setIsModalOpen(true);
-  };
+  const getProgramName = (programId: string) => programs.find(p => p.id === programId)?.name || 'غير معروف';
 
-  const startEdit = (session: SessionType) => {
-    setEditingSession(session);
-    setIsModalOpen(true);
-  };
-
-  const handleSave = async () => {
-    if (!editingSession) return;
-
-    try {
-      if (editingSession.id) {
-        // Update existing session
-        await api.sessions.update(editingSession.id, {
-          programId: editingSession.programId,
-          date: editingSession.date.toISOString(),
-          startTime: editingSession.startTime,
-          endTime: editingSession.endTime,
-          location: editingSession.location,
-          isRecurring: editingSession.isRecurring,
-          recurrencePattern: editingSession.recurrencePattern,
-          notes: editingSession.notes,
-        });
-      } else {
-        // Create new session
-        await api.sessions.create({
-          programId: editingSession.programId,
-          date: editingSession.date.toISOString(),
-          startTime: editingSession.startTime,
-          endTime: editingSession.endTime,
-          location: editingSession.location,
-          isRecurring: editingSession.isRecurring,
-          recurrencePattern: editingSession.recurrencePattern,
-          notes: editingSession.notes,
-        });
+  const sessionsByDate = useMemo(() => {
+    return sessions.reduce((acc, session) => {
+      const date = new Date(session.date).toDateString();
+      if (!acc[date]) {
+        acc[date] = [];
       }
-      setIsModalOpen(false);
-      setEditingSession(null);
-      fetchSessions(); // Refresh the list
-    } catch (err) {
-      console.error('Failed to save session:', err);
-      setError('فشل في حفظ الجلسة. يرجى المحاولة مرة أخرى.');
-    }
+      acc[date].push(session);
+      return acc;
+    }, {} as Record<string, Session[]>);
+  }, [sessions]);
+
+  const handleExportXLSX = () => {
+    const dataToExport = sessions.map(s => ({
+      'البرنامج': getProgramName(s.programId),
+      'التاريخ': s.date,
+      'وقت البدء': s.startTime,
+      'وقت الانتهاء': s.endTime,
+      'الموقع': s.location,
+    }));
+    exportToXLSX(dataToExport, 'Schedule', 'الجدول الزمني');
   };
 
-  const handleDeleteClick = (id: string) => {
-    setSessionToDelete(id);
-    setDeleteModalOpen(true);
+  const handleExportPDF = () => {
+    const headers = ['البرنامج', 'التاريخ', 'الوقت', 'الموقع'];
+    const body = sessions.map(s => [
+      getProgramName(s.programId),
+      s.date,
+      `${s.startTime} - ${s.endTime}`,
+      s.location,
+    ]);
+    exportToPDF(headers, body, 'الجدول الزمني');
   };
 
-  const handleDeleteConfirm = async () => {
-    if (!sessionToDelete) return;
-
-    try {
-      await api.sessions.remove(sessionToDelete);
-      setDeleteModalOpen(false);
-      setSessionToDelete(null);
-      fetchSessions(); // Refresh the list
-    } catch (err) {
-      console.error('Failed to delete session:', err);
-      setError('فشل في حذف الجلسة. يرجى المحاولة مرة أخرى.');
-    }
-  };
-
-  const handleModalClose = () => {
-    setIsModalOpen(false);
-    setEditingSession(null);
-  };
-
-  if (loading) {
-    return <div className='text-center py-8'>جاري تحميل الجدول الزمني...</div>;
-  }
-
-  if (error) {
-    return <div className='text-center py-8 text-red-600'>{error}</div>;
-  }
+  if (loading) return <div className="p-6 text-center">جاري التحميل...</div>;
+  if (error) return <div className="p-6 text-center text-red-500">{error}</div>;
 
   return (
-    <div className='p-6'>
-      <div className='flex items-center justify-between mb-4'>
-        <h2 className='text-xl font-semibold'>الجدول الزمني</h2>
-        <Button
-          onClick={startAdd}
-          className='px-4 py-2 bg-indigo-600 text-white rounded'
-        >
-          إضافة جلسة
-        </Button>
-      </div>
-
-      <div className='bg-white p-4 rounded shadow overflow-auto'>
-        <table className='w-full text-right'>
-          <thead className='bg-gray-50 text-gray-600'>
-            <tr>
-              <th className='p-2'>التاريخ</th>
-              <th className='p-2'>البرنامج</th>
-              <th className='p-2'>الوقت</th>
-              <th className='p-2'>المكان</th>
-              <th className='p-2'>التكرار</th>
-              <th className='p-2'>ملاحظات</th>
-              <th className='p-2'>إجراءات</th>
-            </tr>
-          </thead>
-          <tbody>
-            {sessions.map((s) => (
-              <tr key={s.id} className='border-t'>
-                <td className='p-2'>
-                  {new Date(s.date).toLocaleDateString('ar-SA')}
-                </td>
-                <td className='p-2'>{s.programId}</td>{' '}
-                {/* TODO: Display program name */}
-                <td className='p-2'>
-                  {s.startTime} - {s.endTime}
-                </td>
-                <td className='p-2'>{s.location}</td>
-                <td className='p-2'>
-                  {s.isRecurring
-                    ? s.recurrencePattern || 'غير محدد'
-                    : 'لا يوجد'}
-                </td>
-                <td className='p-2'>{s.notes || '-'}</td>
-                <td className='p-2'>
-                  <div className='flex gap-2 justify-end'>
-                    <Button
-                      onClick={() => startEdit(s)}
-                      className='px-3 py-1 border rounded'
-                    >
-                      <Edit2 className='w-4 h-4' />
-                    </Button>
-                    <Button
-                      onClick={() => handleDeleteClick(s.id)}
-                      className='px-3 py-1 border rounded'
-                    >
-                      <Trash2 className='w-4 h-4' />
-                    </Button>
-                  </div>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-
-      {isModalOpen && editingSession && (
-        <Modal
-          isOpen={isModalOpen}
-          onClose={handleModalClose}
-          title={editingSession.id ? 'تعديل جلسة' : 'إضافة جلسة'}
-        >
-          <form
-            onSubmit={(e) => {
-              e.preventDefault();
-              handleSave();
-            }}
-            className='space-y-4'
-          >
-            {/* Program ID - For now, a simple input. Should be a dropdown of existing programs. */}
-            <Input
-              label='معرف البرنامج (Program ID)'
-              value={editingSession.programId}
-              onChange={(e) =>
-                setEditingSession({
-                  ...editingSession,
-                  programId: e.target.value,
-                })
-              }
-              placeholder='معرف البرنامج'
-              required
-            />
-            <Input
-              label='التاريخ'
-              type='date'
-              value={
-                editingSession.date instanceof Date
-                  ? editingSession.date.toISOString().slice(0, 10)
-                  : new Date(editingSession.date).toISOString().slice(0, 10)
-              }
-              onChange={(e) =>
-                setEditingSession({
-                  ...editingSession,
-                  date: new Date(e.target.value),
-                })
-              }
-              required
-            />
-            <div className='grid grid-cols-2 gap-4'>
-              <Input
-                label='وقت البدء'
-                type='time'
-                value={editingSession.startTime}
-                onChange={(e) =>
-                  setEditingSession({
-                    ...editingSession,
-                    startTime: e.target.value,
-                  })
-                }
-                required
-              />
-              <Input
-                label='وقت الانتهاء'
-                type='time'
-                value={editingSession.endTime}
-                onChange={(e) =>
-                  setEditingSession({
-                    ...editingSession,
-                    endTime: e.target.value,
-                  })
-                }
-                required
-              />
-            </div>
-            <Input
-              label='المكان'
-              value={editingSession.location}
-              onChange={(e) =>
-                setEditingSession({
-                  ...editingSession,
-                  location: e.target.value,
-                })
-              }
-              placeholder='المكان'
-              required
-            />
-            <label className='block'>
-              <span className='text-sm font-medium text-gray-700'>متكررة؟</span>
-              <input
-                type='checkbox'
-                checked={editingSession.isRecurring}
-                onChange={(e) =>
-                  setEditingSession({
-                    ...editingSession,
-                    isRecurring: e.target.checked,
-                  })
-                }
-                className='ml-2'
-              />
-            </label>
-            {editingSession.isRecurring && (
-              <label className='block'>
-                <span className='text-sm font-medium text-gray-700'>
-                  نمط التكرار
-                </span>
-                <select
-                  value={editingSession.recurrencePattern || ''}
-                  onChange={(e) =>
-                    setEditingSession({
-                      ...editingSession,
-                      recurrencePattern: e.target
-                        .value as RecurrencePatternType,
-                    })
-                  }
-                  className='mt-1 w-full p-2 border rounded'
-                >
-                  <option value=''>اختر</option>
-                  <option value='DAILY'>يومي</option>
-                  <option value='WEEKLY'>أسبوعي</option>
-                  <option value='MONTHLY'>شهري</option>
-                </select>
-              </label>
-            )}
-            <Input
-              label='ملاحظات'
-              value={editingSession.notes || ''}
-              onChange={(e) =>
-                setEditingSession({ ...editingSession, notes: e.target.value })
-              }
-              placeholder='ملاحظات إضافية'
-            />
-            <div className='flex justify-end gap-3 mt-4'>
-              <Button
-                type='button'
-                variant='secondary'
-                onClick={handleModalClose}
-              >
-                إلغاء
-              </Button>
-              <Button type='submit' variant='primary'>
-                حفظ
-              </Button>
-            </div>
-          </form>
-        </Modal>
-      )}
-
-      {/* Delete Confirmation Modal */}
-      <Modal
-        isOpen={deleteModalOpen}
-        onClose={() => setDeleteModalOpen(false)}
-        title='تأكيد الحذف'
-      >
-        <p className='text-gray-700 mb-4'>
-          هل أنت متأكد أنك تريد حذف هذه الجلسة؟ لا يمكن التراجع عن هذا الإجراء.
-        </p>
-        <div className='flex justify-end gap-3'>
-          <Button variant='secondary' onClick={() => setDeleteModalOpen(false)}>
-            إلغاء
+    <div className="p-6 bg-gray-50 min-h-screen">
+      <div className="flex justify-between items-center mb-6">
+        <h2 className="text-3xl font-bold text-gray-800">الجدول الزمني للبرامج</h2>
+        <div className="flex gap-2">
+          <Button onClick={handleExportXLSX} variant="secondary" className="flex items-center gap-2">
+            <FileDown size={18} />
+            تصدير XLSX
           </Button>
-          <Button variant='danger' onClick={handleDeleteConfirm}>
-            حذف
+          <Button onClick={handleExportPDF} variant="secondary" className="flex items-center gap-2">
+            <FileDown size={18} />
+            تصدير PDF
           </Button>
         </div>
-      </Modal>
+      </div>
+
+      {/* For simplicity, a list view is implemented. A full calendar view would require a library like FullCalendar. */}
+      <div className="bg-white p-6 rounded-lg shadow-sm">
+        {Object.entries(sessionsByDate).map(([date, dateSessions]) => (
+          <div key={date} className="mb-8">
+            <h3 className="text-xl font-bold mb-4 border-b pb-2">{new Date(date).toLocaleDateString('ar-EG', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</h3>
+            <div className="space-y-4">
+              {dateSessions.map(session => (
+                <div key={session.id} className="p-4 border rounded-lg hover:bg-gray-50">
+                  <h4 className="font-bold text-lg">{getProgramName(session.programId)}</h4>
+                  <div className="flex items-center gap-4 text-gray-600 mt-2">
+                    <div className="flex items-center gap-2"><Clock size={16}/> {session.startTime} - {session.endTime}</div>
+                    <div className="flex items-center gap-2"><MapPin size={16}/> {session.location}</div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        ))}
+      </div>
     </div>
   );
-}
+};
+
+export default Schedule;
