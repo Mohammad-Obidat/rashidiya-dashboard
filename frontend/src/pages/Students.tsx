@@ -6,7 +6,7 @@ import Button from '../components/common/Button';
 import Input from '../components/common/Input';
 import Modal from '../components/common/Modal';
 import { PlusCircle, Search, FileDown, Trash2, Edit } from 'lucide-react';
-import { exportToXLSX, exportToPDF } from '../lib/exportUtils';
+import { exportData, ExportFormat, DatasetType } from '../lib/exportUtils';
 import LoadingState from '../components/LoadingState';
 import ErrorState from '../components/ErrorState';
 
@@ -66,36 +66,26 @@ const Students: React.FC = () => {
     }
   };
 
-  const handleExportXLSX = () => {
-    const dataToExport = filteredStudents.map((s) => ({
-      الاسم: s.name,
-      'الرقم الأكاديمي': s.studentNumber,
-      الصف: s.grade,
-      الشعبة: s.section,
-      الجنس: s.gender === 'MALE' ? 'ذكر' : 'أنثى',
-      'تاريخ الميلاد': s.birthDate,
-    }));
-    exportToXLSX(dataToExport, 'Students', 'قائمة الطلاب');
+  const handleExportXLSX = async () => {
+    try {
+      await exportData({
+        format: ExportFormat.XLSX,
+        datasetType: DatasetType.STUDENTS,
+      });
+    } catch (err: any) {
+      setError(err.message || 'فشل في تصدير البيانات');
+    }
   };
 
-  const handleExportPDF = () => {
-    const headers = [
-      'الاسم',
-      'الرقم الأكاديمي',
-      'الصف',
-      'الشعبة',
-      'الجنس',
-      'تاريخ الميلاد',
-    ];
-    const body = filteredStudents.map((s) => [
-      s.name,
-      s.studentNumber,
-      s.grade,
-      s.section,
-      s.gender === 'MALE' ? 'ذكر' : 'أنثى',
-      s.birthDate || '',
-    ]);
-    exportToPDF(headers, body, 'قائمة الطلاب');
+  const handleExportPDF = async () => {
+    try {
+      await exportData({
+        format: ExportFormat.PDF,
+        datasetType: DatasetType.STUDENTS,
+      });
+    } catch (err: any) {
+      setError(err.message || 'فشل في تصدير البيانات');
+    }
   };
 
   if (loading) return <LoadingState />;

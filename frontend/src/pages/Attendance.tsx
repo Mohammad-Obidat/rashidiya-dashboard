@@ -3,7 +3,7 @@ import { api } from '../lib/apiClient';
 import type { AttendanceRecord, Program, Student } from '../types/program';
 import Button from '../components/common/Button';
 import { FileDown, Calendar, ClipboardList } from 'lucide-react';
-import { exportToXLSX, exportToPDF } from '../lib/exportUtils';
+import { exportData, ExportFormat, DatasetType } from '../lib/exportUtils';
 import { getAttendanceConfig } from '../config/programConfig';
 import LoadingState from '../components/LoadingState';
 import ErrorState from '../components/ErrorState';
@@ -55,27 +55,36 @@ const Attendance: React.FC = () => {
     [attendance, filterProgram, filterDate]
   );
 
-  const handleExportXLSX = () => {
-    const dataToExport = filteredAttendance.map((r) => ({
-      البرنامج: getProgramName(r.programId),
-      الطالب: getStudentName(r.studentId),
-      التاريخ: r.date,
-      الحالة: getAttendanceConfig(r.status).label,
-      ملاحظات: r.notes || '',
-    }));
-    exportToXLSX(dataToExport, 'Attendance', 'سجل الحضور');
+  const handleExportXLSX = async () => {
+    try {
+      const filters: Record<string, any> = {};
+      if (filterProgram !== 'all') filters.programId = filterProgram;
+      if (filterDate) filters.date = filterDate;
+
+      await exportData({
+        format: ExportFormat.XLSX,
+        datasetType: DatasetType.ATTENDANCE,
+        filters,
+      });
+    } catch (err: any) {
+      setError(err.message || 'فشل في تصدير البيانات');
+    }
   };
 
-  const handleExportPDF = () => {
-    const headers = ['البرنامج', 'الطالب', 'التاريخ', 'الحالة', 'ملاحظات'];
-    const body = filteredAttendance.map((r) => [
-      getProgramName(r.programId),
-      getStudentName(r.studentId),
-      r.date,
-      getAttendanceConfig(r.status).label,
-      r.notes || '',
-    ]);
-    exportToPDF(headers, body, 'سجل الحضور');
+  const handleExportPDF = async () => {
+    try {
+      const filters: Record<string, any> = {};
+      if (filterProgram !== 'all') filters.programId = filterProgram;
+      if (filterDate) filters.date = filterDate;
+
+      await exportData({
+        format: ExportFormat.PDF,
+        datasetType: DatasetType.ATTENDANCE,
+        filters,
+      });
+    } catch (err: any) {
+      setError(err.message || 'فشل في تصدير البيانات');
+    }
   };
 
   if (loading) return <LoadingState />;

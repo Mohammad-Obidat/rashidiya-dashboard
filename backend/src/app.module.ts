@@ -7,6 +7,7 @@ import { AdvisorModule } from './advisor/advisor.module';
 import { ProgramModule } from './program/program.module';
 import { SessionModule } from './session/session.module';
 import { AttendanceRecordModule } from './attendance-record/attendance-record.module';
+import { ExportModule } from './export/export.module';
 
 @Module({
   imports: [
@@ -16,6 +17,7 @@ import { AttendanceRecordModule } from './attendance-record/attendance-record.mo
     ProgramModule,
     SessionModule,
     AttendanceRecordModule,
+    ExportModule,
   ],
   controllers: [AppController],
   providers: [AppService],

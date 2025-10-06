@@ -10,7 +10,7 @@ import {
   Activity,
   ClipboardCheck,
 } from 'lucide-react';
-import { exportToXLSX, exportToPDF } from '../lib/exportUtils';
+import { exportData, ExportFormat, DatasetType } from '../lib/exportUtils';
 import LoadingState from '../components/LoadingState';
 import ErrorState from '../components/ErrorState';
 
