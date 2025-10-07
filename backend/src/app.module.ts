@@ -7,6 +7,7 @@ import { SessionsModule } from './session/session.module';
 import { AttendanceRecordModule } from './attendance-record/attendance-record.module';
 import { AdvisorAssignmentsModule } from './advisor-assignments/advisor-assignments.module';
 import { StudentProgramsModule } from './student-programs/student-programs.module';
+import { ExportModule } from './export/export.module';
 
 @Module({
   imports: [
@@ -18,6 +19,7 @@ import { StudentProgramsModule } from './student-programs/student-programs.modul
     StudentProgramsModule,
     AttendanceRecordModule,
     AdvisorAssignmentsModule,
+    ExportModule,
   ],
   controllers: [],
   providers: [],

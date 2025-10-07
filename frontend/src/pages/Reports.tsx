@@ -10,7 +10,7 @@ import {
   Activity,
   ClipboardCheck,
 } from 'lucide-react';
-// import { exportToXLSX, exportToPDF } from '../lib/exportUtils';
+import { exportToXLSX, exportToPDF } from '../lib/exportUtils';
 import LoadingState from '../components/LoadingState';
 import ErrorState from '../components/ErrorState';
 
@@ -63,13 +63,20 @@ const Reports: React.FC = () => {
     return Object.entries(counts).map(([grade, count]) => ({ grade, count }));
   }, [students]);
 
-  const handleGeneralReportExport = () => {
-    const data = [
-      { المقياس: 'إجمالي البرامج', القيمة: totalPrograms },
-      { المقياس: 'إجمالي الطلاب', القيمة: totalStudents },
-      { المقياس: 'إجمالي سجلات الحضور', القيمة: totalAttendance },
-    ];
-    // exportToXLSX(data, 'GeneralReport', 'تقرير عام');
+  const handleGeneralReportExport = async () => {
+    try {
+      await exportToXLSX('PROGRAMS', {}, 'تقرير_البرامج.xlsx');
+    } catch (err: any) {
+      setError(err.message || 'فشل في تصدير الملف');
+    }
+  };
+
+  const handleGeneralReportPDFExport = async () => {
+    try {
+      await exportToPDF('PROGRAMS', {}, 'تقرير_البرامج.pdf');
+    } catch (err: any) {
+      setError(err.message || 'فشل في تصدير الملف');
+    }
   };
 
   if (loading) return <LoadingState />;
@@ -91,7 +98,7 @@ const Reports: React.FC = () => {
             تصدير XLSX
           </Button>
           <Button
-            // onClick={handleExportPDF}
+            onClick={handleGeneralReportPDFExport}
             variant='secondary'
             className='flex items-center gap-2'
           >

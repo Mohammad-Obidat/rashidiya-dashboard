@@ -44,9 +44,12 @@ export class PDFGenerator {
         doc.registerFont('Amiri', fontBuffer);
         doc.font('Amiri');
 
-        // Add title
+        // Add title with proper RTL alignment
         doc.fontSize(18);
-        doc.text(title, { align: rtl ? 'right' : 'left' });
+        doc.text(title, { 
+          align: rtl ? 'right' : 'left',
+          features: rtl ? ['rtla'] : []
+        });
         doc.moveDown();
 
         // Calculate column widths
@@ -74,6 +77,7 @@ export class PDFGenerator {
             doc.text(col.header, currentX, headerY, {
               width: colWidth,
               align: 'right',
+              features: ['rtla']
             });
           } else {
             doc.text(col.header, currentX, headerY, {
@@ -98,15 +102,32 @@ export class PDFGenerator {
         // Draw table rows
         doc.fontSize(10);
         data.forEach((row, rowIndex) => {
-          const rowY = doc.y;
+          const startY = doc.y;
 
           // Check if we need a new page
-          if (rowY > doc.page.height - doc.page.margins.bottom - 50) {
+          if (startY > doc.page.height - doc.page.margins.bottom - 50) {
             doc.addPage();
             doc.font('Amiri');
             doc.fontSize(10);
           }
 
+          // FIRST PASS: Calculate maximum height for this row
+          let maxCellHeight = 0;
+          columns.forEach((col, colIndex) => {
+            const colWidth = columnWidths[colIndex];
+            const cellValue = String(row[col.key] ?? '');
+            
+            const textHeight = doc.heightOfString(cellValue, {
+              width: colWidth,
+              align: rtl ? 'right' : 'left',
+              features: rtl ? ['rtla'] : [],
+              lineBreak: true
+            });
+            
+            maxCellHeight = Math.max(maxCellHeight, textHeight);
+          });
+
+          // SECOND PASS: Draw all cells at their correct positions
           currentX = rtl
             ? doc.page.width - doc.page.margins.right
             : doc.page.margins.left;
@@ -117,26 +138,28 @@ export class PDFGenerator {
 
             if (rtl) {
               currentX -= colWidth;
-              doc.text(cellValue, currentX, doc.y, {
+              doc.text(cellValue, currentX, startY, {
                 width: colWidth,
                 align: 'right',
-                lineBreak: false,
+                features: ['rtla'],
+                lineBreak: true
               });
             } else {
-              doc.text(cellValue, currentX, doc.y, {
+              doc.text(cellValue, currentX, startY, {
                 width: colWidth,
                 align: 'left',
-                lineBreak: false,
+                lineBreak: true
               });
               currentX += colWidth;
             }
           });
 
-          doc.moveDown(0.8);
+          // Move to next row position based on the tallest cell
+          doc.y = startY + maxCellHeight + 8;
 
           // Draw light separator line between rows
           if (rowIndex < data.length - 1) {
-            const separatorY = doc.y;
+            const separatorY = doc.y - 4;
             doc
               .moveTo(doc.page.margins.left, separatorY)
               .lineTo(doc.page.width - doc.page.margins.right, separatorY)
