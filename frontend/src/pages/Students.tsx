@@ -6,7 +6,7 @@ import Button from '../components/common/Button';
 import Input from '../components/common/Input';
 import Modal from '../components/common/Modal';
 import { PlusCircle, Search, FileDown, Trash2, Edit } from 'lucide-react';
-import { exportToXLSX, exportToPDF } from '../lib/exportUtils';
+// import { exportToXLSX, exportToPDF } from '../lib/exportUtils';
 import LoadingState from '../components/LoadingState';
 import ErrorState from '../components/ErrorState';
 
@@ -75,7 +75,7 @@ const Students: React.FC = () => {
       الجنس: s.gender === 'MALE' ? 'ذكر' : 'أنثى',
       'تاريخ الميلاد': s.birthDate,
     }));
-    exportToXLSX(dataToExport, 'Students', 'قائمة الطلاب');
+    // exportToXLSX(dataToExport, 'Students', 'قائمة الطلاب');
   };
 
   const handleExportPDF = () => {
@@ -95,7 +95,7 @@ const Students: React.FC = () => {
       s.gender === 'MALE' ? 'ذكر' : 'أنثى',
       s.birthDate || '',
     ]);
-    exportToPDF(headers, body, 'قائمة الطلاب');
+    // exportToPDF(headers, body, 'قائمة الطلاب');
   };
 
   if (loading) return <LoadingState />;

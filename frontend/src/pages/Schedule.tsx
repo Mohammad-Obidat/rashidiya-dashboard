@@ -8,7 +8,7 @@ import {
   Clock,
   MapPin,
 } from 'lucide-react';
-import { exportToXLSX, exportToPDF } from '../lib/exportUtils';
+// import { exportToXLSX, exportToPDF } from '../lib/exportUtils';
 import LoadingState from '../components/LoadingState';
 import ErrorState from '../components/ErrorState';
 
@@ -62,7 +62,7 @@ const Schedule: React.FC = () => {
       'وقت الانتهاء': s.endTime,
       الموقع: s.location,
     }));
-    exportToXLSX(dataToExport, 'Schedule', 'الجدول الزمني');
+    // exportToXLSX(dataToExport, 'Schedule', 'الجدول الزمني');
   };
 
   const handleExportPDF = () => {
@@ -73,7 +73,7 @@ const Schedule: React.FC = () => {
       `${s.startTime} - ${s.endTime}`,
       s.location,
     ]);
-    exportToPDF(headers, body, 'الجدول الزمني');
+    // exportToPDF(headers, body, 'الجدول الزمني');
   };
 
   if (loading) return <LoadingState />;

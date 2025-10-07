@@ -1,15 +1,14 @@
 import {
   IsString,
-  IsDateString,
   IsBoolean,
   IsOptional,
+  IsDateString,
   IsEnum,
-  IsUUID,
 } from 'class-validator';
 import { RecurrencePattern } from '@prisma/client';
 
 export class CreateSessionDto {
-  @IsUUID()
+  @IsString()
   programId: string;
 
   @IsDateString()
@@ -24,8 +23,8 @@ export class CreateSessionDto {
   @IsString()
   location: string;
 
-  @IsBoolean()
   @IsOptional()
+  @IsBoolean()
   isRecurring?: boolean;
 
   @IsOptional()

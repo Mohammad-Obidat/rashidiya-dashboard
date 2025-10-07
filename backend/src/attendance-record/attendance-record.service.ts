@@ -1,71 +1,96 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
+import { AttendanceRecord, AttendanceStatus } from '@prisma/client';
 import { CreateAttendanceRecordDto } from './dto/create-attendance-record.dto';
-import { UpdateAttendanceRecordDto } from './dto/update-attendance-record.dto';
 
 @Injectable()
-export class AttendanceRecordService {
+export class AttendanceRecordsService {
   constructor(private prisma: PrismaService) {}
 
-  async create(createAttendanceRecordDto: CreateAttendanceRecordDto) {
-    return this.prisma.attendanceRecord.create({
-      data: createAttendanceRecordDto,
-    });
-  }
-
-  async findAll() {
+  async findAll(): Promise<AttendanceRecord[]> {
     return this.prisma.attendanceRecord.findMany({
       include: { student: true, session: true, program: true },
     });
   }
 
-  async findOne(id: string) {
-    const attendanceRecord = await this.prisma.attendanceRecord.findUnique({
+  async findOne(id: string): Promise<AttendanceRecord> {
+    const record = await this.prisma.attendanceRecord.findUnique({
       where: { id },
       include: { student: true, session: true, program: true },
     });
-    if (!attendanceRecord) {
-      throw new NotFoundException(`AttendanceRecord with ID ${id} not found`);
-    }
-    return attendanceRecord;
+    if (!record)
+      throw new NotFoundException(`AttendanceRecord ${id} not found`);
+    return record;
   }
 
-  async findByProgram(programId: string) {
-    return this.prisma.attendanceRecord.findMany({
-      where: {
-        session: { programId },
+  async create(dto: CreateAttendanceRecordDto): Promise<AttendanceRecord> {
+    return this.prisma.attendanceRecord.create({
+      data: {
+        studentId: dto.studentId,
+        sessionId: dto.sessionId,
+        programId: dto.programId,
+        status: dto.status,
+        date: dto.date ? new Date(dto.date) : new Date(),
+        notes: dto.notes,
       },
-      include: {
-        student: true,
-        session: true,
-      },
-      orderBy: { date: 'desc' },
+      include: { student: true, session: true, program: true },
     });
   }
 
   async update(
     id: string,
-    updateAttendanceRecordDto: UpdateAttendanceRecordDto,
-  ) {
-    const attendanceRecord = await this.prisma.attendanceRecord.findUnique({
-      where: { id },
-    });
-    if (!attendanceRecord) {
-      throw new NotFoundException(`AttendanceRecord with ID ${id} not found`);
-    }
+    data: Partial<AttendanceRecord>,
+  ): Promise<AttendanceRecord> {
     return this.prisma.attendanceRecord.update({
       where: { id },
-      data: updateAttendanceRecordDto,
+      data,
+      include: { student: true, session: true, program: true },
     });
   }
 
-  async remove(id: string) {
-    const attendanceRecord = await this.prisma.attendanceRecord.findUnique({
-      where: { id },
+  async remove(id: string): Promise<void> {
+    await this.prisma.attendanceRecord.delete({ where: { id } });
+  }
+
+  async bulkCreate(
+    records: CreateAttendanceRecordDto[],
+  ): Promise<AttendanceRecord[]> {
+    const created = await this.prisma.$transaction(
+      records.map((dto) =>
+        this.prisma.attendanceRecord.create({
+          data: {
+            studentId: dto.studentId,
+            sessionId: dto.sessionId,
+            programId: dto.programId,
+            status: dto.status,
+            date: dto.date ? new Date(dto.date) : new Date(),
+            notes: dto.notes,
+          },
+          include: { student: true, session: true, program: true },
+        }),
+      ),
+    );
+    return created;
+  }
+
+  async findBySession(sessionId: string): Promise<AttendanceRecord[]> {
+    return this.prisma.attendanceRecord.findMany({
+      where: { sessionId },
+      include: { student: true, session: true, program: true },
     });
-    if (!attendanceRecord) {
-      throw new NotFoundException(`AttendanceRecord with ID ${id} not found`);
-    }
-    return this.prisma.attendanceRecord.delete({ where: { id } });
+  }
+
+  async findByStudent(studentId: string): Promise<AttendanceRecord[]> {
+    return this.prisma.attendanceRecord.findMany({
+      where: { studentId },
+      include: { student: true, session: true, program: true },
+    });
+  }
+
+  async findByProgram(programId: string): Promise<AttendanceRecord[]> {
+    return this.prisma.attendanceRecord.findMany({
+      where: { programId },
+      include: { student: true, session: true, program: true },
+    });
   }
 }

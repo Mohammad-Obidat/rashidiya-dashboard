@@ -1,5 +1,5 @@
+import { IsString, IsOptional, IsDateString, IsEnum } from 'class-validator';
 import { Gender } from '@prisma/client';
-import { IsString, IsEnum, IsOptional, IsDateString } from 'class-validator';
 
 export class CreateStudentDto {
   @IsString()
@@ -14,21 +14,19 @@ export class CreateStudentDto {
   @IsString()
   section: string;
 
-  @IsEnum(Gender)
   @IsOptional()
+  @IsEnum(Gender)
   gender?: Gender;
 
-  @IsDateString()
   @IsOptional()
+  @IsDateString()
   birthDate?: string;
 
-  @IsString()
   @IsOptional()
+  @IsString()
   phone?: string;
 
-  @IsString()
   @IsOptional()
+  @IsString()
   address?: string;
 }
-
-export class UpdateStudentDto extends CreateStudentDto {}

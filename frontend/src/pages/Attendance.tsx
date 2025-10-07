@@ -3,7 +3,7 @@ import { api } from '../lib/apiClient';
 import type { AttendanceRecord, Program, Student } from '../types/program';
 import Button from '../components/common/Button';
 import { FileDown, Calendar, ClipboardList } from 'lucide-react';
-import { exportToXLSX, exportToPDF } from '../lib/exportUtils';
+// import { exportToXLSX, exportToPDF } from '../lib/exportUtils';
 import { getAttendanceConfig } from '../config/programConfig';
 import LoadingState from '../components/LoadingState';
 import ErrorState from '../components/ErrorState';
@@ -63,7 +63,7 @@ const Attendance: React.FC = () => {
       الحالة: getAttendanceConfig(r.status).label,
       ملاحظات: r.notes || '',
     }));
-    exportToXLSX(dataToExport, 'Attendance', 'سجل الحضور');
+    // exportToXLSX(dataToExport, 'Attendance', 'سجل الحضور');
   };
 
   const handleExportPDF = () => {
@@ -75,7 +75,7 @@ const Attendance: React.FC = () => {
       getAttendanceConfig(r.status).label,
       r.notes || '',
     ]);
-    exportToPDF(headers, body, 'سجل الحضور');
+    // exportToPDF(headers, body, 'سجل الحضور');
   };
 
   if (loading) return <LoadingState />;

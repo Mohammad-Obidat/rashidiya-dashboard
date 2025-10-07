@@ -6,7 +6,7 @@ import Button from '../components/common/Button';
 import Input from '../components/common/Input';
 import Modal from '../components/common/Modal';
 import { PlusCircle, Search, FileDown, Trash2, Edit } from 'lucide-react';
-import { exportToXLSX, exportToPDF } from '../lib/exportUtils';
+// import { exportToXLSX, exportToPDF } from '../lib/exportUtils';
 import LoadingState from '../components/LoadingState';
 import ErrorState from '../components/ErrorState';
 
@@ -73,13 +73,13 @@ const Mentors: React.FC = () => {
       'البريد الإلكتروني': m.email,
       'رقم الهاتف': m.phone,
     }));
-    exportToXLSX(dataToExport, 'Mentors', 'قائمة المشرفين');
+    // exportToXLSX(dataToExport, 'Mentors', 'قائمة المشرفين');
   };
 
   const handleExportPDF = () => {
     const headers = ['الاسم', 'البريد الإلكتروني', 'رقم الهاتف'];
     const body = filteredMentors.map((m) => [m.name, m.email, m.phone]);
-    exportToPDF(headers, body, 'قائمة المشرفين');
+    // exportToPDF(headers, body, 'قائمة المشرفين');
   };
 
   if (loading) return <LoadingState />;

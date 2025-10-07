@@ -159,14 +159,14 @@ export const api = {
     // Get assignments by program
     byProgram: async (programId: string): Promise<AdvisorAssignment[]> => {
       const { data } = await apiClient.get<AdvisorAssignment[]>(
-        `/advisor-assignments/program/${programId}`
+        `/advisor-assignments/programs/${programId}`
       );
       return data;
     },
     // Get assignments by advisor
     byAdvisor: async (advisorId: string): Promise<AdvisorAssignment[]> => {
       const { data } = await apiClient.get<AdvisorAssignment[]>(
-        `/advisor-assignments/advisor/${advisorId}`
+        `/advisor-assignments/advisors/${advisorId}`
       );
       return data;
     },
@@ -239,14 +239,14 @@ export const api = {
     // Get enrollments by program
     byProgram: async (programId: string): Promise<StudentProgram[]> => {
       const { data } = await apiClient.get<StudentProgram[]>(
-        `/student-programs/program/${programId}`
+        `/student-programs/programs/${programId}`
       );
       return data;
     },
     // Get enrollments by student
     byStudent: async (studentId: string): Promise<StudentProgram[]> => {
       const { data } = await apiClient.get<StudentProgram[]>(
-        `/student-programs/student/${studentId}`
+        `/student-programs/students/${studentId}`
       );
       return data;
     },
@@ -276,7 +276,7 @@ export const api = {
     // Get sessions by program
     byProgram: async (programId: string): Promise<Session[]> => {
       const { data } = await apiClient.get<Session[]>(
-        `/sessions/program/${programId}`
+        `/sessions/programs/${programId}`
       );
       return data;
     },
@@ -341,21 +341,21 @@ export const api = {
     // Get attendance by session
     bySession: async (sessionId: string): Promise<AttendanceRecord[]> => {
       const { data } = await apiClient.get<AttendanceRecord[]>(
-        `/attendance-records/session/${sessionId}`
+        `/attendance-records/sessions/${sessionId}`
       );
       return data;
     },
     // Get attendance by student
     byStudent: async (studentId: string): Promise<AttendanceRecord[]> => {
       const { data } = await apiClient.get<AttendanceRecord[]>(
-        `/attendance-records/student/${studentId}`
+        `/attendance-records/students/${studentId}`
       );
       return data;
     },
     // Get attendance by program
     byProgram: async (programId: string): Promise<AttendanceRecord[]> => {
       const { data } = await apiClient.get<AttendanceRecord[]>(
-        `/attendance-records/program/${programId}`
+        `/attendance-records/programs/${programId}`
       );
       return data;
     },

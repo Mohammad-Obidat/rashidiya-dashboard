@@ -2,54 +2,74 @@ import {
   Controller,
   Get,
   Post,
-  Body,
   Patch,
-  Param,
   Delete,
-  UsePipes,
-  ValidationPipe,
+  Param,
+  Body,
 } from '@nestjs/common';
-import { AttendanceRecordService } from './attendance-record.service';
+import { AttendanceRecordsService } from './attendance-record.service';
+import { AttendanceRecord } from '@prisma/client';
 import { CreateAttendanceRecordDto } from './dto/create-attendance-record.dto';
-import { UpdateAttendanceRecordDto } from './dto/update-attendance-record.dto';
 
 @Controller('attendance-records')
-@UsePipes(new ValidationPipe({ whitelist: true, transform: true }))
-export class AttendanceRecordController {
-  constructor(
-    private readonly attendanceRecordService: AttendanceRecordService,
-  ) {}
-
-  @Post()
-  create(@Body() createAttendanceRecordDto: CreateAttendanceRecordDto) {
-    return this.attendanceRecordService.create(createAttendanceRecordDto);
-  }
+export class AttendanceRecordsController {
+  constructor(private readonly service: AttendanceRecordsService) {}
 
   @Get()
-  findAll() {
-    return this.attendanceRecordService.findAll();
+  async list(): Promise<AttendanceRecord[]> {
+    return this.service.findAll();
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.attendanceRecordService.findOne(id);
+  async get(@Param('id') id: string): Promise<AttendanceRecord> {
+    return this.service.findOne(id);
   }
 
-  @Get('program/:programId')
-  async findByProgram(@Param('programId') programId: string) {
-    return this.attendanceRecordService.findByProgram(programId);
+  @Post()
+  async create(
+    @Body() dto: CreateAttendanceRecordDto,
+  ): Promise<AttendanceRecord> {
+    return this.service.create(dto);
   }
 
   @Patch(':id')
-  update(
+  async update(
     @Param('id') id: string,
-    @Body() updateAttendanceRecordDto: UpdateAttendanceRecordDto,
-  ) {
-    return this.attendanceRecordService.update(id, updateAttendanceRecordDto);
+    @Body() dto: Partial<AttendanceRecord>,
+  ): Promise<AttendanceRecord> {
+    return this.service.update(id, dto);
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.attendanceRecordService.remove(id);
+  async remove(@Param('id') id: string): Promise<void> {
+    return this.service.remove(id);
+  }
+
+  @Post('bulk')
+  async bulkCreate(
+    @Body() records: CreateAttendanceRecordDto[],
+  ): Promise<AttendanceRecord[]> {
+    return this.service.bulkCreate(records);
+  }
+
+  @Get('sessions/:sessionId')
+  async bySession(
+    @Param('sessionId') sessionId: string,
+  ): Promise<AttendanceRecord[]> {
+    return this.service.findBySession(sessionId);
+  }
+
+  @Get('students/:studentId')
+  async byStudent(
+    @Param('studentId') studentId: string,
+  ): Promise<AttendanceRecord[]> {
+    return this.service.findByStudent(studentId);
+  }
+
+  @Get('programs/:programId')
+  async byProgram(
+    @Param('programId') programId: string,
+  ): Promise<AttendanceRecord[]> {
+    return this.service.findByProgram(programId);
   }
 }

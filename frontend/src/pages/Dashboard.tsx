@@ -64,8 +64,8 @@ const Dashboard: React.FC = () => {
     return matchesSearch && matchesType && matchesStatus;
   });
 
-  const handleView = (id: string) => navigate(`/program/${id}`);
-  const handleEdit = (id: string) => navigate(`/program/edit/${id}`);
+  const handleView = (id: string) => navigate(`/programs/${id}`);
+  const handleEdit = (id: string) => navigate(`/programs/edit/${id}`);
 
   const handleDeleteClick = (id: string) => {
     setProgramToDelete(id);
@@ -89,7 +89,7 @@ const Dashboard: React.FC = () => {
     }
   };
 
-  const handleAddProgram = () => navigate('/program/new');
+  const handleAddProgram = () => navigate('/programs/new');
 
   const handleResetFilters = () => {
     setSearchTerm('');

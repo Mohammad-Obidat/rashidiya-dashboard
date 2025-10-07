@@ -10,7 +10,7 @@ import {
   Activity,
   ClipboardCheck,
 } from 'lucide-react';
-import { exportToXLSX, exportToPDF } from '../lib/exportUtils';
+// import { exportToXLSX, exportToPDF } from '../lib/exportUtils';
 import LoadingState from '../components/LoadingState';
 import ErrorState from '../components/ErrorState';
 
@@ -69,7 +69,7 @@ const Reports: React.FC = () => {
       { المقياس: 'إجمالي الطلاب', القيمة: totalStudents },
       { المقياس: 'إجمالي سجلات الحضور', القيمة: totalAttendance },
     ];
-    exportToXLSX(data, 'GeneralReport', 'تقرير عام');
+    // exportToXLSX(data, 'GeneralReport', 'تقرير عام');
   };
 
   if (loading) return <LoadingState />;

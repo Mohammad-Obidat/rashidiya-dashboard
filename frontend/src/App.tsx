@@ -23,9 +23,9 @@ function App() {
 
             <Route path='/' element={<Dashboard />} />
             <Route path='/programs' element={<Dashboard />} />
-            <Route path='/program/new' element={<AddEditProgram />} />
-            <Route path='/program/:id' element={<ProgramDetails />} />
-            <Route path='/program/edit/:id' element={<AddEditProgram />} />
+            <Route path='/programs/new' element={<AddEditProgram />} />
+            <Route path='/programs/:id' element={<ProgramDetails />} />
+            <Route path='/programs/edit/:id' element={<AddEditProgram />} />
 
             <Route path='/mentors' element={<Mentors />} />
             <Route path='/mentors/new' element={<MentorForm />} />

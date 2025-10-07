@@ -1,12 +1,12 @@
 import { Module } from '@nestjs/common';
-import { AppController } from './app.controller';
-import { AppService } from './app.service';
 import { PrismaModule } from './prisma/prisma.module';
 import { StudentsModule } from './students/students.module';
 import { AdvisorModule } from './advisor/advisor.module';
 import { ProgramModule } from './program/program.module';
-import { SessionModule } from './session/session.module';
+import { SessionsModule } from './session/session.module';
 import { AttendanceRecordModule } from './attendance-record/attendance-record.module';
+import { AdvisorAssignmentsModule } from './advisor-assignments/advisor-assignments.module';
+import { StudentProgramsModule } from './student-programs/student-programs.module';
 
 @Module({
   imports: [
@@ -14,10 +14,12 @@ import { AttendanceRecordModule } from './attendance-record/attendance-record.mo
     StudentsModule,
     AdvisorModule,
     ProgramModule,
-    SessionModule,
+    SessionsModule,
+    StudentProgramsModule,
     AttendanceRecordModule,
+    AdvisorAssignmentsModule,
   ],
-  controllers: [AppController],
-  providers: [AppService],
+  controllers: [],
+  providers: [],
 })
 export class AppModule {}
