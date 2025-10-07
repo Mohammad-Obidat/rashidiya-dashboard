@@ -2,8 +2,13 @@ import React, { useEffect, useState, useMemo } from 'react';
 import { api } from '../lib/apiClient';
 import type { Session, Program } from '../types/program';
 import Button from '../components/common/Button';
-import { FileDown, Clock, MapPin } from 'lucide-react';
-import { exportData, ExportFormat, DatasetType } from '../lib/exportUtils';
+import {
+  FileDown,
+  Calendar as CalendarIcon,
+  Clock,
+  MapPin,
+} from 'lucide-react';
+// import { exportToXLSX, exportToPDF } from '../lib/exportUtils';
 import LoadingState from '../components/LoadingState';
 import ErrorState from '../components/ErrorState';
 
@@ -49,26 +54,26 @@ const Schedule: React.FC = () => {
     }, {} as Record<string, Session[]>);
   }, [sessions]);
 
-  const handleExportXLSX = async () => {
-    try {
-      await exportData({
-        format: ExportFormat.XLSX,
-        datasetType: DatasetType.SESSIONS,
-      });
-    } catch (err: any) {
-      setError(err.message || 'فشل في تصدير البيانات');
-    }
+  const handleExportXLSX = () => {
+    const dataToExport = sessions.map((s) => ({
+      البرنامج: getProgramName(s.programId),
+      التاريخ: s.date,
+      'وقت البدء': s.startTime,
+      'وقت الانتهاء': s.endTime,
+      الموقع: s.location,
+    }));
+    // exportToXLSX(dataToExport, 'Schedule', 'الجدول الزمني');
   };
 
-  const handleExportPDF = async () => {
-    try {
-      await exportData({
-        format: ExportFormat.PDF,
-        datasetType: DatasetType.SESSIONS,
-      });
-    } catch (err: any) {
-      setError(err.message || 'فشل في تصدير البيانات');
-    }
+  const handleExportPDF = () => {
+    const headers = ['البرنامج', 'التاريخ', 'الوقت', 'الموقع'];
+    const body = sessions.map((s) => [
+      getProgramName(s.programId),
+      s.date,
+      `${s.startTime} - ${s.endTime}`,
+      s.location,
+    ]);
+    // exportToPDF(headers, body, 'الجدول الزمني');
   };
 
   if (loading) return <LoadingState />;

@@ -10,7 +10,7 @@ import {
   Activity,
   ClipboardCheck,
 } from 'lucide-react';
-import { exportData, ExportFormat, DatasetType } from '../lib/exportUtils';
+// import { exportToXLSX, exportToPDF } from '../lib/exportUtils';
 import LoadingState from '../components/LoadingState';
 import ErrorState from '../components/ErrorState';
 
@@ -69,7 +69,7 @@ const Reports: React.FC = () => {
       { المقياس: 'إجمالي الطلاب', القيمة: totalStudents },
       { المقياس: 'إجمالي سجلات الحضور', القيمة: totalAttendance },
     ];
-    exportToXLSX(data, 'GeneralReport', 'تقرير عام');
+    // exportToXLSX(data, 'GeneralReport', 'تقرير عام');
   };
 
   if (loading) return <LoadingState />;
@@ -81,14 +81,24 @@ const Reports: React.FC = () => {
         <h2 className='text-3xl font-bold text-gray-800'>
           التقارير والإحصائيات
         </h2>
-        <Button
-          onClick={handleGeneralReportExport}
-          variant='primary'
-          className='flex items-center gap-2'
-        >
-          <FileDown size={18} />
-          تصدير تقرير عام
-        </Button>
+        <div className='flex gap-2'>
+          <Button
+            onClick={handleGeneralReportExport}
+            variant='secondary'
+            className='flex items-center gap-2'
+          >
+            <FileDown size={18} />
+            تصدير XLSX
+          </Button>
+          <Button
+            // onClick={handleExportPDF}
+            variant='secondary'
+            className='flex items-center gap-2'
+          >
+            <FileDown size={18} />
+            تصدير PDF
+          </Button>
+        </div>
       </div>
 
       <div className='grid grid-cols-1 md:grid-cols-3 gap-6 mb-6'>

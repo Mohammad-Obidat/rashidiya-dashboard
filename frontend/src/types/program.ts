@@ -172,7 +172,7 @@ export interface CreateAdvisorAssignmentDto {
 
 export interface UpdateAdvisorAssignmentDto {
   advisorId?: string;
-  programId?: string;
+  programId: string;
   assignedDate?: string;
   endDate?: string;
 }
@@ -209,7 +209,7 @@ export interface CreateStudentProgramDto {
 
 export interface UpdateStudentProgramDto {
   studentId?: string;
-  programId?: string;
+  programId: string;
   joinDate?: string;
 }
 
@@ -226,8 +226,8 @@ export interface CreateSessionDto {
 }
 
 export interface UpdateSessionDto {
-  programId?: string;
-  date?: string;
+  programId: string;
+  date: string;
   startTime?: string;
   endTime?: string;
   location?: string;
@@ -249,8 +249,8 @@ export interface CreateAttendanceRecordDto {
 export interface UpdateAttendanceRecordDto {
   studentId?: string;
   sessionId?: string;
-  programId?: string;
-  date?: string;
+  programId: string;
+  date: string;
   status?: AttendanceStatus;
   notes?: string;
 }

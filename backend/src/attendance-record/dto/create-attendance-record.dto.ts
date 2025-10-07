@@ -17,8 +17,9 @@ export class CreateAttendanceRecordDto {
   @IsUUID()
   programId: string;
 
+  @IsOptional()
   @IsDateString()
-  date: string;
+  date?: string;
 
   @IsEnum(AttendanceStatus)
   status: AttendanceStatus;
