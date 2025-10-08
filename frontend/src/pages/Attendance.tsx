@@ -49,7 +49,13 @@ const Attendance: React.FC = () => {
       attendance.filter((record) => {
         const matchesProgram =
           filterProgram === 'all' || record.programId === filterProgram;
-        const matchesDate = !filterDate || record.date === filterDate;
+
+        const recordDate = record.date
+          ? new Date(record.date).toISOString().split('T')[0]
+          : '';
+
+        const matchesDate = !filterDate || recordDate === filterDate;
+
         return matchesProgram && matchesDate;
       }),
     [attendance, filterProgram, filterDate]
@@ -185,7 +191,11 @@ const Attendance: React.FC = () => {
                   {getProgramName(record.programId)}
                 </td>
                 <td className='p-4'>{getStudentName(record.studentId)}</td>
-                <td className='p-4'>{record.date}</td>
+                <td className='p-4'>
+                  {record.date
+                    ? new Date(record.date).toISOString().split('T')[0]
+                    : ''}
+                </td>
                 <td className='p-4'>
                   <span
                     className={`px-2 py-1 text-xs font-semibold rounded-full ${

@@ -101,7 +101,7 @@ const MentorForm: React.FC = () => {
           <Input
             name='name'
             label='الاسم الكامل'
-            value={formData.name}
+            value={formData.name || ''}
             onChange={handleChange}
             required
           />
@@ -109,14 +109,14 @@ const MentorForm: React.FC = () => {
             type='email'
             name='email'
             label='البريد الإلكتروني'
-            value={formData.email}
+            value={formData.email || ''}
             onChange={handleChange}
             required
           />
           <Input
             name='phone'
             label='رقم الهاتف'
-            value={formData.phone}
+            value={formData.phone || ''}
             onChange={handleChange}
             required
           />
@@ -147,4 +147,3 @@ const MentorForm: React.FC = () => {
 };
 
 export default MentorForm;
-MentorForm;

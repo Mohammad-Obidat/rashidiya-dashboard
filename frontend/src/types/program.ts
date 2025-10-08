@@ -39,8 +39,6 @@ export interface Advisor {
   name: string;
   phone: string;
   email: string;
-  createdAt: string;
-  updatedAt: string;
   currentPrograms?: Program[];
   assignments?: AdvisorAssignment[];
 }

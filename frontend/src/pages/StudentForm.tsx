@@ -81,11 +81,19 @@ const StudentForm: React.FC = () => {
     setError(null);
 
     try {
+      const dataToSend = {
+        ...formData,
+        birthDate: formData.birthDate
+          ? new Date(formData.birthDate).toISOString()
+          : null,
+      };
+
       if (isEditMode) {
-        await api.students.update(id, formData as UpdateStudentDto);
+        await api.students.update(id, dataToSend as UpdateStudentDto);
       } else {
-        await api.students.create(formData as CreateStudentDto);
+        await api.students.create(dataToSend as CreateStudentDto);
       }
+
       navigate('/students');
     } catch (err: any) {
       setError(err.response?.data?.message || 'فشل في حفظ الطالب');

@@ -158,7 +158,11 @@ const Students: React.FC = () => {
                 <td className='p-4'>
                   {student.gender === 'MALE' ? 'ذكر' : 'أنثى'}
                 </td>
-                <td className='p-4'>{student.birthDate}</td>
+                <td className='p-4'>
+                  {student.birthDate
+                    ? new Date(student.birthDate).toISOString().split('T')[0]
+                    : ''}
+                </td>
                 <td className='p-4 flex justify-center gap-2'>
                   <Button
                     onClick={() => navigate(`/students/edit/${student.id}`)}
