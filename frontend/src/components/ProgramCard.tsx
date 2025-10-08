@@ -112,14 +112,14 @@ const ProgramCard: React.FC<ProgramCardProps> = ({
             className='flex items-center justify-center gap-1 px-3 py-2.5 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-all duration-200 border border-gray-300 active:scale-95'
             aria-label='تعديل البرنامج'
           >
-            <Edit2 className='w-4 h-4' />
+            <Edit2 className='w-4 h-4 cursor-pointer' />
           </button>
           <button
             onClick={() => onDelete(program.id)}
             className='flex items-center justify-center gap-1 px-3 py-2.5 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition-all duration-200 border border-red-200 active:scale-95'
             aria-label='حذف البرنامج'
           >
-            <Trash2 className='w-4 h-4' />
+            <Trash2 className='w-4 h-4 cursor-pointer' />
           </button>
         </div>
       </div>

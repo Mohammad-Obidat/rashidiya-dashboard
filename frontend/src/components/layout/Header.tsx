@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
+import schoolLogo from '../../assets/schoolLogo.png';
 import {
-  GraduationCap,
   BookOpen,
   Backpack,
   User,
@@ -21,14 +21,14 @@ const Header: React.FC = () => {
         <div className='flex items-center'>
           <Link to='/programs' className='flex items-center gap-3 group'>
             <div className='bg-white/10 backdrop-blur-sm p-2 rounded-xl group-hover:bg-white/20 transition-all duration-300 group-hover:scale-110'>
-              <GraduationCap className='w-8 h-8' />
+              <img src={schoolLogo} alt='logo' />
             </div>
             <div>
               <h1 className='text-xl font-bold tracking-tight'>
-                نظام إدارة البرامج اللامنهجية
+                مدرسة الرشيدية | إدارة البرامج اللامنهجية
               </h1>
               <p className='text-sm text-blue-100 font-light'>
-                School Programs Management System
+                Rashidya School | Programs Management System
               </p>
             </div>
           </Link>

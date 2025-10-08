@@ -198,7 +198,7 @@ const AddEditProgram: React.FC = () => {
         <div className='mb-8'>
           <button
             onClick={handleCancel}
-            className='flex items-center gap-2 text-gray-600 hover:text-gray-900 mb-4 transition-colors duration-200'
+            className='flex items-center gap-2 text-gray-600 hover:text-gray-900 mb-4 transition-colors duration-200 cursor-pointer'
           >
             <ArrowRight className='w-5 h-5' />
             <span>العودة إلى القائمة</span>

@@ -104,49 +104,47 @@ const Dashboard: React.FC = () => {
     searchTerm || filterType !== 'all' || filterStatus !== 'all';
 
   return (
-    <div className='min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50'>
-      <div className='container mx-auto px-4 py-8'>
-        <DashboardHeader
-          programCount={programs.length}
+    <>
+      <DashboardHeader
+        programCount={programs.length}
+        onAddProgram={handleAddProgram}
+      />
+
+      <SearchFilterBar
+        searchTerm={searchTerm}
+        onSearchChange={setSearchTerm}
+        filterType={filterType}
+        onTypeChange={setFilterType}
+        filterStatus={filterStatus}
+        onStatusChange={setFilterStatus}
+        typeOptions={typeOptions}
+        statusOptions={statusOptions}
+        totalCount={programs.length}
+        filteredCount={filteredPrograms.length}
+        onResetFilters={handleResetFilters}
+      />
+
+      {filteredPrograms.length === 0 ? (
+        <EmptyState
+          isFiltered={hasActiveFilters}
           onAddProgram={handleAddProgram}
         />
-
-        <SearchFilterBar
-          searchTerm={searchTerm}
-          onSearchChange={setSearchTerm}
-          filterType={filterType}
-          onTypeChange={setFilterType}
-          filterStatus={filterStatus}
-          onStatusChange={setFilterStatus}
-          typeOptions={typeOptions}
-          statusOptions={statusOptions}
-          totalCount={programs.length}
-          filteredCount={filteredPrograms.length}
-          onResetFilters={handleResetFilters}
+      ) : (
+        <ProgramsGrid
+          programs={filteredPrograms}
+          onView={handleView}
+          onEdit={handleEdit}
+          onDelete={handleDeleteClick}
         />
+      )}
 
-        {filteredPrograms.length === 0 ? (
-          <EmptyState
-            isFiltered={hasActiveFilters}
-            onAddProgram={handleAddProgram}
-          />
-        ) : (
-          <ProgramsGrid
-            programs={filteredPrograms}
-            onView={handleView}
-            onEdit={handleEdit}
-            onDelete={handleDeleteClick}
-          />
-        )}
-
-        <DeleteConfirmationModal
-          isOpen={deleteModalOpen}
-          isDeleting={isDeleting}
-          onClose={() => setDeleteModalOpen(false)}
-          onConfirm={handleDeleteConfirm}
-        />
-      </div>
-    </div>
+      <DeleteConfirmationModal
+        isOpen={deleteModalOpen}
+        isDeleting={isDeleting}
+        onClose={() => setDeleteModalOpen(false)}
+        onConfirm={handleDeleteConfirm}
+      />
+    </>
   );
 };
 
