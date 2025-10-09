@@ -1,12 +1,14 @@
+// pdf-generator.ts
 import PDFDocument from 'pdfkit';
 import amiriFontBase64 from '../font/amiriFontBase64';
+import limelightFontBase64 from '../font/limelightFontBase64';
 import fs from 'fs';
 import path from 'path';
 
 export interface PDFColumn {
   header: string;
   key: string;
-  width?: number;
+  width?: number; // relative weight if given
 }
 
 export interface PDFGeneratorOptions {
@@ -23,10 +25,6 @@ export class PDFGenerator {
     '../assets/logo.jpeg',
   );
 
-  /*
-   * Generate PDF file buffer from data
-   */
-
   static async generate(options: PDFGeneratorOptions): Promise<Buffer> {
     const { title, columns, data, rtl = true } = options;
 
@@ -34,89 +32,87 @@ export class PDFGenerator {
       try {
         const doc = new PDFDocument({
           size: 'A4',
-          layout: 'landscape',
-          margins: { top: 100, bottom: 50, left: 50, right: 50 },
+          layout: 'portrait',
+          margins: { top: 80, bottom: 50, left: 20, right: 20 },
         });
 
         const chunks: Buffer[] = [];
-
         doc.on('data', (chunk) => chunks.push(chunk));
-        doc.on('end', () => {
-          console.log('=== PDF GENERATION COMPLETED ===');
-          resolve(Buffer.concat(chunks));
-        });
-        doc.on('error', (error) => {
-          console.error('=== PDF GENERATION ERROR ===', error);
-          reject(error);
-        });
+        doc.on('end', () => resolve(Buffer.concat(chunks)));
+        doc.on('error', (err) => reject(err));
 
         // Register Amiri font
-        const fontBuffer = Buffer.from(amiriFontBase64, 'base64');
-        doc.registerFont('Amiri', fontBuffer);
+        const amiriFontBuffer = Buffer.from(amiriFontBase64, 'base64');
+        const limelightFontBuffer = Buffer.from(limelightFontBase64, 'base64');
+        doc.registerFont('Amiri', amiriFontBuffer);
+        doc.registerFont('Limelight', limelightFontBuffer);
 
         // Add header
         PDFGenerator.addHeader(doc, rtl);
 
-        // Reset to main content area
-        doc.y = 100;
+        // Move down into content area
+        doc.moveDown(1);
         doc.font('Amiri');
+        doc.fontSize(16);
 
-        // Add title
-        doc.fontSize(18);
+        // Title
         doc.text(title || 'سجل الحضور والغياب', {
           align: rtl ? 'right' : 'left',
           features: rtl ? ['rtla'] : [],
         });
-        doc.moveDown();
+        doc.moveDown(1);
 
-        // Calculate column widths
+        // Prepare columns and widths
         const pageWidth =
           doc.page.width - doc.page.margins.left - doc.page.margins.right;
-        const totalWidth = columns.reduce(
-          (sum, col) => sum + (col.width || 1),
+        const totalWeight = columns.reduce(
+          (sum, col) => sum + (col.width ?? 1),
           0,
         );
         const columnWidths = columns.map(
-          (col) => ((col.width || 1) / totalWidth) * pageWidth,
+          (col) => ((col.width ?? 1) / totalWeight) * pageWidth,
         );
 
-        // Draw table header
+        // Header row
         doc.fontSize(12);
+        const headerY = doc.y;
+
         let currentX = rtl
           ? doc.page.width - doc.page.margins.right
           : doc.page.margins.left;
-        const headerY = doc.y;
 
-        columns.forEach((col, index) => {
-          const colWidth = columnWidths[index];
+        columns.forEach((col, idx) => {
+          const w = columnWidths[idx];
           if (rtl) {
-            currentX -= colWidth;
+            currentX -= w;
             doc.text(col.header, currentX, headerY, {
-              width: colWidth,
+              width: w,
               align: 'right',
               features: ['rtla'],
+              lineBreak: true,
             });
           } else {
             doc.text(col.header, currentX, headerY, {
-              width: colWidth,
+              width: w,
               align: 'left',
+              lineBreak: true,
             });
-            currentX += colWidth;
+            currentX += w;
           }
         });
 
-        doc.moveDown();
+        doc.moveDown(0.5);
 
-        // Draw horizontal line after header
-        const lineY = doc.y;
+        // Draw a line below header
+        const afterHeaderY = doc.y + 12;
         doc
-          .moveTo(doc.page.margins.left, lineY)
-          .lineTo(doc.page.width - doc.page.margins.right, lineY)
+          .moveTo(doc.page.margins.left, afterHeaderY)
+          .lineTo(doc.page.width - doc.page.margins.right, afterHeaderY)
           .stroke();
 
         doc.moveDown(0.5);
 
-        // Draw table rows
+        // Body rows
         doc.fontSize(10);
 
         if (!data || data.length === 0) {
@@ -128,99 +124,91 @@ export class PDFGenerator {
           data.forEach((row, rowIndex) => {
             const startY = doc.y;
 
-            // Check if we need a new page
-            if (startY > doc.page.height - doc.page.margins.bottom - 50) {
+            // Page break check
+            if (startY > doc.page.height - doc.page.margins.bottom - 40) {
               doc.addPage();
-              doc.font('Amiri');
-              doc.fontSize(10);
+              // re-draw header on new page
+              PDFGenerator.addHeader(doc, rtl);
+              doc.moveDown(2);
+              doc.font('Amiri').fontSize(10);
             }
 
-            // Calculate row height
+            // Compute row height (max among cells)
             let maxCellHeight = 0;
-            columns.forEach((col, colIndex) => {
-              const colWidth = columnWidths[colIndex];
-              const cellValue = String(row[col.key] ?? '');
-
-              const textHeight = doc.heightOfString(cellValue, {
-                width: colWidth,
+            columns.forEach((col, ci) => {
+              const w = columnWidths[ci];
+              const txt = String(row[col.key] ?? '');
+              const h = doc.heightOfString(txt, {
+                width: w,
                 align: rtl ? 'right' : 'left',
                 features: rtl ? ['rtla'] : [],
                 lineBreak: true,
               });
-
-              maxCellHeight = Math.max(maxCellHeight, textHeight);
+              maxCellHeight = Math.max(maxCellHeight, h);
             });
 
-            // Draw cells
+            // Draw each cell
             currentX = rtl
               ? doc.page.width - doc.page.margins.right
               : doc.page.margins.left;
 
-            columns.forEach((col, colIndex) => {
-              const colWidth = columnWidths[colIndex];
-              const cellValue = String(row[col.key] ?? '');
-
+            columns.forEach((col, ci) => {
+              const w = columnWidths[ci];
+              const txt = String(row[col.key] ?? '');
               if (rtl) {
-                currentX -= colWidth;
-                doc.text(cellValue, currentX, startY, {
-                  width: colWidth,
+                currentX -= w;
+                doc.text(txt, currentX, startY, {
+                  width: w,
                   align: 'right',
                   features: ['rtla'],
                   lineBreak: true,
                 });
               } else {
-                doc.text(cellValue, currentX, startY, {
-                  width: colWidth,
+                doc.text(txt, currentX, startY, {
+                  width: w,
                   align: 'left',
                   lineBreak: true,
                 });
-                currentX += colWidth;
+                currentX += w;
               }
             });
 
+            // Advance vertical position
             doc.y = startY + maxCellHeight + 8;
 
-            // Draw separator line
+            // Separator
             if (rowIndex < data.length - 1) {
-              const separatorY = doc.y - 4;
+              const sepY = doc.y - 3;
               doc
-                .moveTo(doc.page.margins.left, separatorY)
-                .lineTo(doc.page.width - doc.page.margins.right, separatorY)
-                .strokeOpacity(0.2)
+                .moveTo(doc.page.margins.left, sepY)
+                .lineTo(doc.page.width - doc.page.margins.right, sepY)
+                .strokeOpacity(0.3)
                 .stroke()
                 .strokeOpacity(1);
-              doc.moveDown(0.3);
+              doc.moveDown(0.4);
             }
           });
         }
 
         doc.end();
-      } catch (error) {
-        console.error('=== PDF GENERATION CATCH ERROR ===', error);
-        reject(error);
+      } catch (err) {
+        reject(err);
       }
     });
   }
 
-  /**
-   * Add school header to the document
-   */
   private static addHeader(doc: PDFKit.PDFDocument, rtl: boolean): void {
     const headerY = 30;
-    const logoSize = 40;
+    const logoSize = 65;
+    doc.font('Limelight');
+    doc.fontSize(17);
 
-    doc.font('Amiri');
-
-    // English text - Top Left
-    doc.fontSize(10);
+    // Left / English
     doc.text(
       "AL- RASHIDYA SECONDARY BOY'S SCHOOL - Jerusalem",
       doc.page.margins.left,
       headerY,
-      {
-        align: 'left',
-        width: 200,
-      },
+      { width: 200, align: 'left' },
     );
 
     // School logo - Top Center
@@ -276,25 +264,23 @@ export class PDFGenerator {
       });
     }
 
-    // Arabic text - Top Right
-    doc.fontSize(10);
-    doc.text(
-      'المدرسة الرشيدية الثانوية للبنين - القدس',
-      doc.page.width - doc.page.margins.right - 200,
-      headerY,
-      {
-        width: 200,
-        align: 'right',
-        features: ['rtla'],
-      },
-    );
+    // Arabic on right
+    doc.font('Amiri');
+    doc.fontSize(18);
+    const rightX = doc.page.width - doc.page.margins.right - 200;
+    doc.text('المدرسة الرشيدية الثانوية للبنين القدس', rightX, headerY, {
+      width: 200,
+      align: 'right',
+      features: ['rtla'],
+    });
 
-    // Add separator line
-    const lineY = headerY + 60;
+    // Horizontal line under header
+    const lineY = headerY + 70;
     doc
       .moveTo(doc.page.margins.left, lineY)
       .lineTo(doc.page.width - doc.page.margins.right, lineY)
       .strokeOpacity(0.5)
       .stroke();
+    doc.strokeOpacity(1);
   }
 }
