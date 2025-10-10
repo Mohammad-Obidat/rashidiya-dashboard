@@ -1,39 +1,56 @@
 import React, { useEffect, useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { api } from '../lib/apiClient';
-import type { Advisor } from '../types/program';
+import type { Advisor, Program } from '../types/program';
 import Button from '../components/common/Button';
 import Input from '../components/common/Input';
 import Modal from '../components/common/Modal';
-import { PlusCircle, Search, FileDown, Trash2, Edit } from 'lucide-react';
+import AssignAdvisorModal from '../components/modals/AssignAdvisorModal';
+import {
+  PlusCircle,
+  Search,
+  FileDown,
+  Trash2,
+  Edit,
+  UserPlus,
+} from 'lucide-react';
 import { exportToXLSX, exportToPDF } from '../lib/exportUtils';
 import LoadingState from '../components/LoadingState';
 import ErrorState from '../components/ErrorState';
+// import { useToast } from '../contexts/ToastContext';
 
 const Mentors: React.FC = () => {
   const navigate = useNavigate();
+  // const toast = useToast();
   const [mentors, setMentors] = useState<Advisor[]>([]);
+  const [programs, setPrograms] = useState<Program[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [mentorToDelete, setMentorToDelete] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [assignModalOpen, setAssignModalOpen] = useState(false);
+  const [selectedAdvisor, setSelectedAdvisor] = useState<string | null>(null);
 
   useEffect(() => {
-    const fetchMentors = async () => {
+    const fetchData = async () => {
       try {
         setLoading(true);
         setError(null);
-        const data = await api.advisors.list();
-        setMentors(data);
+        const [mentorsData, programsData] = await Promise.all([
+          api.advisors.list(),
+          api.programs.list(),
+        ]);
+        setMentors(mentorsData);
+        setPrograms(programsData);
       } catch (err: any) {
         setError(err.message || 'فشل في تحميل المشرفين');
       } finally {
         setLoading(false);
       }
     };
-    fetchMentors();
+    fetchData();
   }, []);
 
   const filteredMentors = useMemo(
@@ -60,26 +77,59 @@ const Mentors: React.FC = () => {
       setMentors(mentors.filter((m) => m.id !== mentorToDelete));
       setDeleteModalOpen(false);
       setMentorToDelete(null);
+      // toast.success('تم حذف المشرف بنجاح');
     } catch (err: any) {
-      setError('فشل في حذف المشرف');
+      // toast.error('فشل في حذف المشرف');
     } finally {
       setIsDeleting(false);
+    }
+  };
+
+  const handleAssignClick = (advisorId: string) => {
+    setSelectedAdvisor(advisorId);
+    setAssignModalOpen(true);
+  };
+
+  const handleAssign = async (programId: string) => {
+    if (!selectedAdvisor) return;
+
+    try {
+      // Create advisor assignment
+      await api.advisorAssignments.create({
+        advisorId: selectedAdvisor,
+        programId: programId,
+        assignedDate: new Date().toISOString(),
+      });
+
+      // Update program's currentAdvisorId
+      await api.programs.update(programId, {
+        currentAdvisorId: selectedAdvisor,
+      });
+
+      // toast.success('تم تعيين المشرف للبرنامج بنجاح');
+      setSelectedAdvisor(null);
+    } catch (err: any) {
+      // toast.error('فشل في تعيين المشرف للبرنامج');
+      console.error(err);
+      throw err;
     }
   };
 
   const handleExportXLSX = async () => {
     try {
       await exportToXLSX('ADVISORS', {}, 'قائمة_المشرفين.xlsx');
+      toast.success('تم تصدير الملف بنجاح');
     } catch (err: any) {
-      setError(err.message || 'فشل في تصدير الملف');
+      toast.error('فشل في تصدير الملف');
     }
   };
 
   const handleExportPDF = async () => {
     try {
       await exportToPDF('ADVISORS', {}, 'قائمة_المشرفين.pdf');
+      toast.success('تم تصدير الملف بنجاح');
     } catch (err: any) {
-      setError(err.message || 'فشل في تصدير الملف');
+      toast.error('فشل في تصدير الملف');
     }
   };
 
@@ -154,6 +204,15 @@ const Mentors: React.FC = () => {
                 <td className='p-4'>{mentor.phone}</td>
                 <td className='p-4 flex justify-center gap-2'>
                   <Button
+                    onClick={() => handleAssignClick(mentor.id)}
+                    variant='primary'
+                    className='h-8 w-8 p-0 flex items-center justify-center'
+                  >
+                    <div className='bg-white/10 backdrop-blur-sm p-2 rounded-xl group-hover:bg-white/20 transition-all duration-300 group-hover:scale-110'>
+                      <UserPlus size={16} />
+                    </div>
+                  </Button>
+                  <Button
                     onClick={() => navigate(`/mentors/edit/${mentor.id}`)}
                     variant='secondary'
                     className='h-8 w-8 p-0 flex items-center justify-center'
@@ -208,6 +267,13 @@ const Mentors: React.FC = () => {
       >
         <p>هل أنت متأكد من حذف هذا المشرف؟ لا يمكن التراجع عن هذا الإجراء.</p>
       </Modal>
+
+      <AssignAdvisorModal
+        isOpen={assignModalOpen}
+        onClose={() => setAssignModalOpen(false)}
+        onAssign={handleAssign}
+        programs={programs}
+      />
     </div>
   );
 };
