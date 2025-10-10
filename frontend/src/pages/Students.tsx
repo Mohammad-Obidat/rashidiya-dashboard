@@ -17,9 +17,11 @@ import {
 import { exportToXLSX, exportToPDF } from '../lib/exportUtils';
 import LoadingState from '../components/LoadingState';
 import ErrorState from '../components/ErrorState';
+import { useToast } from '../contexts/ToastContext';
 
 const Students: React.FC = () => {
   const navigate = useNavigate();
+  const toast = useToast();
   const [students, setStudents] = useState<Student[]>([]);
   const [programs, setPrograms] = useState<Program[]>([]);
   const [loading, setLoading] = useState(true);
@@ -74,8 +76,9 @@ const Students: React.FC = () => {
       setStudents(students.filter((s) => s.id !== studentToDelete));
       setDeleteModalOpen(false);
       setStudentToDelete(null);
+      toast.success('تم حذف الطالب بنجاح');
     } catch (err: any) {
-      setError('فشل في حذف الطالب');
+      toast.error('فشل في حذف الطالب');
     } finally {
       setIsDeleting(false);
     }
@@ -89,28 +92,36 @@ const Students: React.FC = () => {
   const handleAssign = async (programId: string) => {
     if (!selectedStudent) return;
 
-    await api.studentPrograms.create({
-      studentId: selectedStudent,
-      programId: programId,
-      joinDate: new Date().toISOString(),
-    });
+    try {
+      await api.studentPrograms.create({
+        studentId: selectedStudent,
+        programId: programId,
+        joinDate: new Date().toISOString(),
+      });
 
-    setSelectedStudent(null);
+      toast.success('تم تعيين الطالب للبرنامج بنجاح');
+      setSelectedStudent(null);
+    } catch (err: any) {
+      toast.error('فشل في تعيين الطالب للبرنامج');
+      throw err;
+    }
   };
 
   const handleExportXLSX = async () => {
     try {
       await exportToXLSX('STUDENTS', {}, 'قائمة_الطلاب.xlsx');
+      toast.success('تم تصدير الملف بنجاح');
     } catch (err: any) {
-      setError(err.message || 'فشل في تصدير الملف');
+      toast.error('فشل في تصدير الملف');
     }
   };
 
   const handleExportPDF = async () => {
     try {
       await exportToPDF('STUDENTS', {}, 'قائمة_الطلاب.pdf');
+      toast.success('تم تصدير الملف بنجاح');
     } catch (err: any) {
-      setError(err.message || 'فشل في تصدير الملف');
+      toast.error('فشل في تصدير الملف');
     }
   };
 
@@ -200,6 +211,7 @@ const Students: React.FC = () => {
                     onClick={() => handleAssignClick(student.id)}
                     variant='primary'
                     className='h-8 w-8 p-0 flex items-center justify-center'
+                    title='تعيين إلى برنامج'
                   >
                     <div className='bg-white/10 backdrop-blur-sm p-2 rounded-xl group-hover:bg-white/20 transition-all duration-300 group-hover:scale-110'>
                       <UserPlus size={16} />

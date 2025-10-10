@@ -16,8 +16,10 @@ import {
 import { exportToXLSX, exportToPDF } from '../lib/exportUtils';
 import LoadingState from '../components/LoadingState';
 import ErrorState from '../components/ErrorState';
+import { useToast } from '../contexts/ToastContext';
 
 const Schedule: React.FC = () => {
+  const toast = useToast();
   const [sessions, setSessions] = useState<Session[]>([]);
   const [programs, setPrograms] = useState<Program[]>([]);
   const [loading, setLoading] = useState(true);
@@ -62,16 +64,18 @@ const Schedule: React.FC = () => {
   const handleExportXLSX = async () => {
     try {
       await exportToXLSX('SESSIONS', {}, 'الجدول_الزمني.xlsx');
+      toast.success('تم تصدير الملف بنجاح');
     } catch (err: any) {
-      setError(err.message || 'فشل في تصدير الملف');
+      toast.error('فشل في تصدير الملف');
     }
   };
 
   const handleExportPDF = async () => {
     try {
       await exportToPDF('SESSIONS', {}, 'الجدول_الزمني.pdf');
+      toast.success('تم تصدير الملف بنجاح');
     } catch (err: any) {
-      setError(err.message || 'فشل في تصدير الملف');
+      toast.error('فشل في تصدير الملف');
     }
   };
 
@@ -86,34 +90,41 @@ const Schedule: React.FC = () => {
   };
 
   const handleSaveSchedule = async (formData: ScheduleFormData) => {
-    if (editingSession) {
-      // Update existing session
-      const updated = await api.sessions.update(editingSession.id, {
-        programId: formData.programId,
-        date: formData.date,
-        startTime: formData.startTime,
-        endTime: formData.endTime,
-        location: formData.location,
-        isRecurring: formData.isRecurring,
-        recurrencePattern: formData.recurrencePattern || undefined,
-        notes: formData.notes || undefined,
-      });
-      setSessions(
-        sessions.map((s) => (s.id === editingSession.id ? updated : s))
-      );
-    } else {
-      // Create new session
-      const created = await api.sessions.create({
-        programId: formData.programId,
-        date: formData.date,
-        startTime: formData.startTime,
-        endTime: formData.endTime,
-        location: formData.location,
-        isRecurring: formData.isRecurring,
-        recurrencePattern: formData.recurrencePattern || undefined,
-        notes: formData.notes || undefined,
-      });
-      setSessions([...sessions, created]);
+    try {
+      if (editingSession) {
+        // Update existing session
+        const updated = await api.sessions.update(editingSession.id, {
+          programId: formData.programId,
+          date: formData.date,
+          startTime: formData.startTime,
+          endTime: formData.endTime,
+          location: formData.location,
+          isRecurring: formData.isRecurring,
+          recurrencePattern: formData.recurrencePattern || undefined,
+          notes: formData.notes || undefined,
+        });
+        setSessions(
+          sessions.map((s) => (s.id === editingSession.id ? updated : s))
+        );
+        toast.success('تم تحديث الجدول الزمني بنجاح');
+      } else {
+        // Create new session
+        const created = await api.sessions.create({
+          programId: formData.programId,
+          date: formData.date,
+          startTime: formData.startTime,
+          endTime: formData.endTime,
+          location: formData.location,
+          isRecurring: formData.isRecurring,
+          recurrencePattern: formData.recurrencePattern || undefined,
+          notes: formData.notes || undefined,
+        });
+        setSessions([...sessions, created]);
+        toast.success('تم إضافة الجدول الزمني بنجاح');
+      }
+    } catch (err: any) {
+      toast.error('فشل في حفظ الجدول الزمني');
+      throw err;
     }
   };
 

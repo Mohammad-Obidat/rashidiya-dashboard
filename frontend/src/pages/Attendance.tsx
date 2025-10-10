@@ -1,6 +1,11 @@
 import React, { useEffect, useState, useMemo } from 'react';
 import { api } from '../lib/apiClient';
-import type { AttendanceRecord, Program, Student, Session } from '../types/program';
+import type {
+  AttendanceRecord,
+  Program,
+  Student,
+  Session,
+} from '../types/program';
 import Button from '../components/common/Button';
 import AttendanceFormModal from '../components/modals/AttendanceFormModal';
 import { FileDown, Calendar, ClipboardList, PlusCircle } from 'lucide-react';
@@ -8,8 +13,10 @@ import { exportToXLSX, exportToPDF } from '../lib/exportUtils';
 import { getAttendanceConfig } from '../config/programConfig';
 import LoadingState from '../components/LoadingState';
 import ErrorState from '../components/ErrorState';
+import { useToast } from '../contexts/ToastContext';
 
 const Attendance: React.FC = () => {
+  const toast = useToast();
   const [attendance, setAttendance] = useState<AttendanceRecord[]>([]);
   const [programs, setPrograms] = useState<Program[]>([]);
   const [students, setStudents] = useState<Student[]>([]);
@@ -76,8 +83,9 @@ const Attendance: React.FC = () => {
         filters.date = filterDate;
       }
       await exportToXLSX('ATTENDANCE', filters, 'سجل_الحضور.xlsx');
+      toast.success('تم تصدير الملف بنجاح');
     } catch (err: any) {
-      setError(err.message || 'فشل في تصدير الملف');
+      toast.error('فشل في تصدير الملف');
     }
   };
 
@@ -91,8 +99,9 @@ const Attendance: React.FC = () => {
         filters.date = filterDate;
       }
       await exportToPDF('ATTENDANCE', filters, 'سجل_الحضور.pdf');
+      toast.success('تم تصدير الملف بنجاح');
     } catch (err: any) {
-      setError(err.message || 'فشل في تصدير الملف');
+      toast.error('فشل في تصدير الملف');
     }
   };
 
@@ -109,20 +118,26 @@ const Attendance: React.FC = () => {
     sessionId: string,
     records: Array<{ studentId: string; status: any; notes: string }>
   ) => {
-    const session = sessions.find((s) => s.id === sessionId);
-    if (!session) return;
+    try {
+      const session = sessions.find((s) => s.id === sessionId);
+      if (!session) return;
 
-    const attendanceRecords = records.map((record) => ({
-      studentId: record.studentId,
-      sessionId: sessionId,
-      programId: session.programId,
-      date: session.date,
-      status: record.status,
-      notes: record.notes || undefined,
-    }));
+      const attendanceRecords = records.map((record) => ({
+        studentId: record.studentId,
+        sessionId: sessionId,
+        programId: session.programId,
+        date: session.date,
+        status: record.status,
+        notes: record.notes || undefined,
+      }));
 
-    const created = await api.attendanceRecords.bulkCreate(attendanceRecords);
-    setAttendance([...attendance, ...created]);
+      const created = await api.attendanceRecords.bulkCreate(attendanceRecords);
+      setAttendance([...attendance, ...created]);
+      toast.success('تم تسجيل الحضور بنجاح');
+    } catch (err: any) {
+      toast.error('فشل في تسجيل الحضور');
+      throw err;
+    }
   };
 
   if (loading) return <LoadingState />;
@@ -273,4 +288,3 @@ const Attendance: React.FC = () => {
 };
 
 export default Attendance;
-

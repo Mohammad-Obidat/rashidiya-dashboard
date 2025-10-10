@@ -7,10 +7,12 @@ import Input from '../components/common/Input';
 import { Save, ArrowRight, UserPlus, Edit } from 'lucide-react';
 import LoadingState from '../components/LoadingState';
 import ErrorState from '../components/ErrorState';
+import { useToast } from '../contexts/ToastContext';
 
 const MentorForm: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const toast = useToast();
   const isEditMode = !!id;
 
   const [formData, setFormData] = useState<CreateAdvisorDto | UpdateAdvisorDto>(
@@ -57,12 +59,16 @@ const MentorForm: React.FC = () => {
     try {
       if (isEditMode) {
         await api.advisors.update(id, formData as UpdateAdvisorDto);
+        toast.success('تم تحديث بيانات المشرف بنجاح');
       } else {
         await api.advisors.create(formData as CreateAdvisorDto);
+        toast.success('تم إضافة المشرف بنجاح');
       }
       navigate('/mentors');
     } catch (err: any) {
-      setError(err.response?.data?.message || 'فشل في حفظ المشرف');
+      const errorMsg = err.response?.data?.message || 'فشل في حفظ المشرف';
+      setError(errorMsg);
+      toast.error(errorMsg);
     } finally {
       setIsSaving(false);
     }
