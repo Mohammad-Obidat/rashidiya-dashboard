@@ -1,11 +1,19 @@
 import React, { useEffect, useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { api } from '../lib/apiClient';
-import type { Student } from '../types/program';
+import type { Student, Program } from '../types/program';
 import Button from '../components/common/Button';
 import Input from '../components/common/Input';
 import Modal from '../components/common/Modal';
-import { PlusCircle, Search, FileDown, Trash2, Edit } from 'lucide-react';
+import AssignStudentModal from '../components/modals/AssignStudentModal';
+import {
+  PlusCircle,
+  Search,
+  FileDown,
+  Trash2,
+  Edit,
+  UserPlus,
+} from 'lucide-react';
 import { exportToXLSX, exportToPDF } from '../lib/exportUtils';
 import LoadingState from '../components/LoadingState';
 import ErrorState from '../components/ErrorState';
@@ -13,27 +21,34 @@ import ErrorState from '../components/ErrorState';
 const Students: React.FC = () => {
   const navigate = useNavigate();
   const [students, setStudents] = useState<Student[]>([]);
+  const [programs, setPrograms] = useState<Program[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [studentToDelete, setStudentToDelete] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [assignModalOpen, setAssignModalOpen] = useState(false);
+  const [selectedStudent, setSelectedStudent] = useState<string | null>(null);
 
   useEffect(() => {
-    const fetchStudents = async () => {
+    const fetchData = async () => {
       try {
         setLoading(true);
         setError(null);
-        const data = await api.students.list();
-        setStudents(data);
+        const [studentsData, programsData] = await Promise.all([
+          api.students.list(),
+          api.programs.list(),
+        ]);
+        setStudents(studentsData);
+        setPrograms(programsData);
       } catch (err: any) {
         setError(err.message || 'فشل في تحميل الطلاب');
       } finally {
         setLoading(false);
       }
     };
-    fetchStudents();
+    fetchData();
   }, []);
 
   const filteredStudents = useMemo(
@@ -64,6 +79,23 @@ const Students: React.FC = () => {
     } finally {
       setIsDeleting(false);
     }
+  };
+
+  const handleAssignClick = (studentId: string) => {
+    setSelectedStudent(studentId);
+    setAssignModalOpen(true);
+  };
+
+  const handleAssign = async (programId: string) => {
+    if (!selectedStudent) return;
+
+    await api.studentPrograms.create({
+      studentId: selectedStudent,
+      programId: programId,
+      joinDate: new Date().toISOString(),
+    });
+
+    setSelectedStudent(null);
   };
 
   const handleExportXLSX = async () => {
@@ -165,6 +197,15 @@ const Students: React.FC = () => {
                 </td>
                 <td className='p-4 flex justify-center gap-2'>
                   <Button
+                    onClick={() => handleAssignClick(student.id)}
+                    variant='primary'
+                    className='h-8 w-8 p-0 flex items-center justify-center'
+                  >
+                    <div className='bg-white/10 backdrop-blur-sm p-2 rounded-xl group-hover:bg-white/20 transition-all duration-300 group-hover:scale-110'>
+                      <UserPlus size={16} />
+                    </div>
+                  </Button>
+                  <Button
                     onClick={() => navigate(`/students/edit/${student.id}`)}
                     variant='secondary'
                     className='h-8 w-8 p-0 flex items-center justify-center'
@@ -219,6 +260,13 @@ const Students: React.FC = () => {
       >
         <p>هل أنت متأكد من حذف هذا الطالب؟ لا يمكن التراجع عن هذا الإجراء.</p>
       </Modal>
+
+      <AssignStudentModal
+        isOpen={assignModalOpen}
+        onClose={() => setAssignModalOpen(false)}
+        onAssign={handleAssign}
+        programs={programs}
+      />
     </div>
   );
 };

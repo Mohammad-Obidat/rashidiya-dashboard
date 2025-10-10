@@ -1,8 +1,9 @@
 import React, { useEffect, useState, useMemo } from 'react';
 import { api } from '../lib/apiClient';
-import type { AttendanceRecord, Program, Student } from '../types/program';
+import type { AttendanceRecord, Program, Student, Session } from '../types/program';
 import Button from '../components/common/Button';
-import { FileDown, Calendar, ClipboardList } from 'lucide-react';
+import AttendanceFormModal from '../components/modals/AttendanceFormModal';
+import { FileDown, Calendar, ClipboardList, PlusCircle } from 'lucide-react';
 import { exportToXLSX, exportToPDF } from '../lib/exportUtils';
 import { getAttendanceConfig } from '../config/programConfig';
 import LoadingState from '../components/LoadingState';
@@ -12,24 +13,28 @@ const Attendance: React.FC = () => {
   const [attendance, setAttendance] = useState<AttendanceRecord[]>([]);
   const [programs, setPrograms] = useState<Program[]>([]);
   const [students, setStudents] = useState<Student[]>([]);
+  const [sessions, setSessions] = useState<Session[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [filterProgram, setFilterProgram] = useState<string>('all');
   const [filterDate, setFilterDate] = useState<string>('');
+  const [attendanceModalOpen, setAttendanceModalOpen] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
         setLoading(true);
         setError(null);
-        const [attData, progData, studData] = await Promise.all([
+        const [attData, progData, studData, sessData] = await Promise.all([
           api.attendanceRecords.list(),
           api.programs.list(),
           api.students.list(),
+          api.sessions.list(),
         ]);
         setAttendance(attData);
         setPrograms(progData);
         setStudents(studData);
+        setSessions(sessData);
       } catch (err: any) {
         setError(err.message || 'فشل في تحميل بيانات الحضور');
       } finally {
@@ -91,6 +96,35 @@ const Attendance: React.FC = () => {
     }
   };
 
+  const handleTakeAttendance = () => {
+    setAttendanceModalOpen(true);
+  };
+
+  const handleLoadStudents = async (programId: string): Promise<string[]> => {
+    const enrollments = await api.studentPrograms.byProgram(programId);
+    return enrollments.map((e) => e.studentId);
+  };
+
+  const handleSaveAttendance = async (
+    sessionId: string,
+    records: Array<{ studentId: string; status: any; notes: string }>
+  ) => {
+    const session = sessions.find((s) => s.id === sessionId);
+    if (!session) return;
+
+    const attendanceRecords = records.map((record) => ({
+      studentId: record.studentId,
+      sessionId: sessionId,
+      programId: session.programId,
+      date: session.date,
+      status: record.status,
+      notes: record.notes || undefined,
+    }));
+
+    const created = await api.attendanceRecords.bulkCreate(attendanceRecords);
+    setAttendance([...attendance, ...created]);
+  };
+
   if (loading) return <LoadingState />;
   if (error) return <ErrorState error={error} />;
 
@@ -99,6 +133,14 @@ const Attendance: React.FC = () => {
       <div className='flex justify-between items-center mb-6'>
         <h2 className='text-3xl font-bold text-gray-800'>سجل الحضور والغياب</h2>
         <div className='flex gap-2'>
+          <Button
+            onClick={handleTakeAttendance}
+            variant='primary'
+            className='flex items-center gap-2'
+          >
+            <PlusCircle size={20} />
+            تسجيل حضور
+          </Button>
           <Button
             onClick={handleExportXLSX}
             variant='secondary'
@@ -216,8 +258,19 @@ const Attendance: React.FC = () => {
           </div>
         )}
       </div>
+
+      <AttendanceFormModal
+        isOpen={attendanceModalOpen}
+        onClose={() => setAttendanceModalOpen(false)}
+        onSave={handleSaveAttendance}
+        programs={programs}
+        sessions={sessions}
+        students={students}
+        onLoadStudents={handleLoadStudents}
+      />
     </div>
   );
 };
 
 export default Attendance;
+

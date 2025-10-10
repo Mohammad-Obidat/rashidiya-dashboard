@@ -2,11 +2,16 @@ import React, { useEffect, useState, useMemo } from 'react';
 import { api } from '../lib/apiClient';
 import type { Session, Program } from '../types/program';
 import Button from '../components/common/Button';
+import ScheduleFormModal, {
+  type ScheduleFormData,
+} from '../components/modals/ScheduleFormModal';
 import {
   FileDown,
   Calendar as CalendarIcon,
   Clock,
   MapPin,
+  PlusCircle,
+  Edit,
 } from 'lucide-react';
 import { exportToXLSX, exportToPDF } from '../lib/exportUtils';
 import LoadingState from '../components/LoadingState';
@@ -17,8 +22,8 @@ const Schedule: React.FC = () => {
   const [programs, setPrograms] = useState<Program[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [viewMode, setViewMode] = useState<'calendar' | 'list'>('calendar');
-  const [selectedDate, setSelectedDate] = useState(new Date());
+  const [scheduleModalOpen, setScheduleModalOpen] = useState(false);
+  const [editingSession, setEditingSession] = useState<Session | null>(null);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -70,6 +75,48 @@ const Schedule: React.FC = () => {
     }
   };
 
+  const handleAddSchedule = () => {
+    setEditingSession(null);
+    setScheduleModalOpen(true);
+  };
+
+  const handleEditSchedule = (session: Session) => {
+    setEditingSession(session);
+    setScheduleModalOpen(true);
+  };
+
+  const handleSaveSchedule = async (formData: ScheduleFormData) => {
+    if (editingSession) {
+      // Update existing session
+      const updated = await api.sessions.update(editingSession.id, {
+        programId: formData.programId,
+        date: formData.date,
+        startTime: formData.startTime,
+        endTime: formData.endTime,
+        location: formData.location,
+        isRecurring: formData.isRecurring,
+        recurrencePattern: formData.recurrencePattern || undefined,
+        notes: formData.notes || undefined,
+      });
+      setSessions(
+        sessions.map((s) => (s.id === editingSession.id ? updated : s))
+      );
+    } else {
+      // Create new session
+      const created = await api.sessions.create({
+        programId: formData.programId,
+        date: formData.date,
+        startTime: formData.startTime,
+        endTime: formData.endTime,
+        location: formData.location,
+        isRecurring: formData.isRecurring,
+        recurrencePattern: formData.recurrencePattern || undefined,
+        notes: formData.notes || undefined,
+      });
+      setSessions([...sessions, created]);
+    }
+  };
+
   if (loading) return <LoadingState />;
   if (error) return <ErrorState error={error} />;
 
@@ -80,6 +127,14 @@ const Schedule: React.FC = () => {
           الجدول الزمني للبرامج
         </h2>
         <div className='flex gap-2'>
+          <Button
+            onClick={handleAddSchedule}
+            variant='primary'
+            className='flex items-center gap-2'
+          >
+            <PlusCircle size={20} />
+            إضافة جدول جديد
+          </Button>
           <Button
             onClick={handleExportXLSX}
             variant='secondary'
@@ -115,26 +170,44 @@ const Schedule: React.FC = () => {
               {dateSessions.map((session) => (
                 <div
                   key={session.id}
-                  className='p-4 border rounded-lg hover:bg-gray-50'
+                  className='p-4 border rounded-lg hover:bg-gray-50 flex justify-between items-start'
                 >
-                  <h4 className='font-bold text-lg'>
-                    {getProgramName(session.programId)}
-                  </h4>
-                  <div className='flex items-center gap-4 text-gray-600 mt-2'>
-                    <div className='flex items-center gap-2'>
-                      <Clock size={16} /> {session.startTime} -{' '}
-                      {session.endTime}
-                    </div>
-                    <div className='flex items-center gap-2'>
-                      <MapPin size={16} /> {session.location}
+                  <div>
+                    <h4 className='font-bold text-lg'>
+                      {getProgramName(session.programId)}
+                    </h4>
+                    <div className='flex items-center gap-4 text-gray-600 mt-2'>
+                      <div className='flex items-center gap-2'>
+                        <Clock size={16} /> {session.startTime} -{' '}
+                        {session.endTime}
+                      </div>
+                      <div className='flex items-center gap-2'>
+                        <MapPin size={16} /> {session.location}
+                      </div>
                     </div>
                   </div>
+                  <Button
+                    onClick={() => handleEditSchedule(session)}
+                    variant='secondary'
+                    className='h-8 w-8 p-0 flex items-center justify-center'
+                    title='تعديل الجدول'
+                  >
+                    <Edit size={16} />
+                  </Button>
                 </div>
               ))}
             </div>
           </div>
         ))}
       </div>
+
+      <ScheduleFormModal
+        isOpen={scheduleModalOpen}
+        onClose={() => setScheduleModalOpen(false)}
+        onSave={handleSaveSchedule}
+        programs={programs}
+        editingSession={editingSession}
+      />
     </div>
   );
 };

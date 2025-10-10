@@ -51,7 +51,7 @@ export class PDFGenerator {
         PDFGenerator.addHeader(doc, rtl);
 
         // Move down into content area
-        doc.moveDown(1);
+        doc.moveDown(0.5);
         doc.font('Amiri');
         doc.fontSize(16);
 
@@ -60,7 +60,7 @@ export class PDFGenerator {
           align: rtl ? 'right' : 'left',
           features: rtl ? ['rtla'] : [],
         });
-        doc.moveDown(1);
+        doc.moveDown(0.5);
 
         // Prepare columns and widths
         const pageWidth =
@@ -104,7 +104,7 @@ export class PDFGenerator {
         doc.moveDown(0.5);
 
         // Draw a line below header
-        const afterHeaderY = doc.y + 12;
+        const afterHeaderY = doc.y + 5;
         doc
           .moveTo(doc.page.margins.left, afterHeaderY)
           .lineTo(doc.page.width - doc.page.margins.right, afterHeaderY)
@@ -113,7 +113,7 @@ export class PDFGenerator {
         doc.moveDown(0.5);
 
         // Body rows
-        doc.fontSize(10);
+        doc.fontSize(11);
 
         if (!data || data.length === 0) {
           doc.text('لا توجد بيانات متاحة', {
