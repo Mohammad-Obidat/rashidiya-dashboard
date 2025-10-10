@@ -1,11 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { api } from '../lib/apiClient';
-import type {
-  Student,
-  CreateStudentDto,
-  UpdateStudentDto,
-} from '../types/program';
+import type { CreateStudentDto, UpdateStudentDto } from '../types/program';
 import { Gender } from '../types/program';
 import Button from '../components/common/Button';
 import Input from '../components/common/Input';
@@ -17,10 +13,12 @@ import {
 } from '../config/programConfig';
 import LoadingState from '../components/LoadingState';
 import ErrorState from '../components/ErrorState';
+import { useToast } from '../contexts/ToastContext';
 
 const StudentForm: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const toast = useToast();
   const isEditMode = !!id;
 
   const [formData, setFormData] = useState<CreateStudentDto | UpdateStudentDto>(
@@ -90,13 +88,17 @@ const StudentForm: React.FC = () => {
 
       if (isEditMode) {
         await api.students.update(id, dataToSend as UpdateStudentDto);
+        toast.success('تم تحديث بيانات الطالب بنجاح');
       } else {
         await api.students.create(dataToSend as CreateStudentDto);
+        toast.success('تم إضافة الطالب بنجاح');
       }
 
       navigate('/students');
     } catch (err: any) {
-      setError(err.response?.data?.message || 'فشل في حفظ الطالب');
+      const errorMsg = err.response?.data?.message || 'فشل في حفظ الطالب';
+      setError(errorMsg);
+      toast.error(errorMsg);
     } finally {
       setIsSaving(false);
     }
