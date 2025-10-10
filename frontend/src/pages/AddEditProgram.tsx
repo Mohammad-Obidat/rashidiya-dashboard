@@ -7,10 +7,12 @@ import type { CreateProgramDto, Advisor, Student } from '../types/program';
 import { api } from '../lib/apiClient';
 import LoadingState from '../components/LoadingState';
 import ErrorState from '../components/ErrorState';
+import { useToast } from '../contexts/ToastContext';
 
 const AddEditProgram: React.FC = () => {
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
+  const toast = useToast();
   const isEditMode = !!id;
 
   const [formData, setFormData] = useState<CreateProgramDto>({
@@ -155,10 +157,17 @@ const AddEditProgram: React.FC = () => {
         }
       }
 
+      if (isEditMode) {
+        toast.success('تم تحديث البرنامج بنجاح');
+      } else {
+        toast.success('تم إضافة البرنامج بنجاح');
+      }
       navigate(`/programs/${programId}`); // Redirect to program details page
     } catch (err) {
       console.error('Failed to save program:', err);
-      setError('فشل في حفظ البرنامج. يرجى المحاولة مرة أخرى.');
+      const errorMsg = 'فشل في حفظ البرنامج. يرجى المحاولة مرة أخرى.';
+      setError(errorMsg);
+      toast.error(errorMsg);
     } finally {
       setIsSubmitting(false);
     }
