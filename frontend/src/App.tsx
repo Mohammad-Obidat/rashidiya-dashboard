@@ -11,41 +11,49 @@ import Attendance from './pages/Attendance';
 import Schedule from './pages/Schedule';
 import Reports from './pages/Reports';
 import AddEditProgram from './pages/AddEditProgram';
+import { ToastProvider } from './contexts/ToastContext';
+import ToastContainer from './components/common/Toast';
 
 function App() {
   return (
-    <Router>
-      <div className='min-h-screen bg-gray-50' dir='rtl'>
-        <Header />
-        <main>
-          <div className='min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50'>
-            <div className='container mx-auto px-4 py-8'>
-              <Routes>
-                <Route path='/login' element={<Auth />} />
+    <ToastProvider>
+      <Router>
+        <div className='min-h-screen bg-gray-50' dir='rtl'>
+          <Header />
+          <main>
+            <div className='min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50'>
+              <div className='container mx-auto px-4 py-8'>
+                <Routes>
+                  <Route path='/login' element={<Auth />} />
 
-                <Route path='/' element={<Dashboard />} />
-                <Route path='/programs' element={<Dashboard />} />
-                <Route path='/programs/new' element={<AddEditProgram />} />
-                <Route path='/programs/:id' element={<ProgramDetails />} />
-                <Route path='/programs/edit/:id' element={<AddEditProgram />} />
+                  <Route path='/' element={<Dashboard />} />
+                  <Route path='/programs' element={<Dashboard />} />
+                  <Route path='/programs/new' element={<AddEditProgram />} />
+                  <Route path='/programs/:id' element={<ProgramDetails />} />
+                  <Route
+                    path='/programs/edit/:id'
+                    element={<AddEditProgram />}
+                  />
 
-                <Route path='/mentors' element={<Mentors />} />
-                <Route path='/mentors/new' element={<MentorForm />} />
-                <Route path='/mentors/edit/:id' element={<MentorForm />} />
+                  <Route path='/mentors' element={<Mentors />} />
+                  <Route path='/mentors/new' element={<MentorForm />} />
+                  <Route path='/mentors/edit/:id' element={<MentorForm />} />
 
-                <Route path='/students' element={<Students />} />
-                <Route path='/students/new' element={<StudentForm />} />
-                <Route path='/students/edit/:id' element={<StudentForm />} />
+                  <Route path='/students' element={<Students />} />
+                  <Route path='/students/new' element={<StudentForm />} />
+                  <Route path='/students/edit/:id' element={<StudentForm />} />
 
-                <Route path='/attendance' element={<Attendance />} />
-                <Route path='/schedule' element={<Schedule />} />
-                <Route path='/reports' element={<Reports />} />
-              </Routes>
+                  <Route path='/attendance' element={<Attendance />} />
+                  <Route path='/schedule' element={<Schedule />} />
+                  <Route path='/reports' element={<Reports />} />
+                </Routes>
+              </div>
             </div>
-          </div>
-        </main>
-      </div>
-    </Router>
+          </main>
+          <ToastContainer />
+        </div>
+      </Router>
+    </ToastProvider>
   );
 }
 

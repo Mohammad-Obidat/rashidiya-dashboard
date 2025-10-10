@@ -17,11 +17,11 @@ import {
 import { exportToXLSX, exportToPDF } from '../lib/exportUtils';
 import LoadingState from '../components/LoadingState';
 import ErrorState from '../components/ErrorState';
-// import { useToast } from '../contexts/ToastContext';
+import { useToast } from '../contexts/ToastContext';
 
 const Mentors: React.FC = () => {
   const navigate = useNavigate();
-  // const toast = useToast();
+  const toast = useToast();
   const [mentors, setMentors] = useState<Advisor[]>([]);
   const [programs, setPrograms] = useState<Program[]>([]);
   const [loading, setLoading] = useState(true);
@@ -77,9 +77,9 @@ const Mentors: React.FC = () => {
       setMentors(mentors.filter((m) => m.id !== mentorToDelete));
       setDeleteModalOpen(false);
       setMentorToDelete(null);
-      // toast.success('تم حذف المشرف بنجاح');
+      toast.success('تم حذف المشرف بنجاح');
     } catch (err: any) {
-      // toast.error('فشل في حذف المشرف');
+      toast.error('فشل في حذف المشرف');
     } finally {
       setIsDeleting(false);
     }
@@ -106,11 +106,10 @@ const Mentors: React.FC = () => {
         currentAdvisorId: selectedAdvisor,
       });
 
-      // toast.success('تم تعيين المشرف للبرنامج بنجاح');
+      toast.success('تم تعيين المشرف للبرنامج بنجاح');
       setSelectedAdvisor(null);
     } catch (err: any) {
-      // toast.error('فشل في تعيين المشرف للبرنامج');
-      console.error(err);
+      toast.error('فشل في تعيين المشرف للبرنامج');
       throw err;
     }
   };
