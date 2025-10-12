@@ -1,11 +1,12 @@
 import React from 'react';
 import Button from './common/Button';
+import { Navigate } from 'react-router-dom';
 
 interface ErrorStateProps {
   error: string;
 }
 
-const onRetry = () => window.location.reload();
+const onRetry = () => Navigate({ to: location.pathname, replace: true });
 
 const ErrorState: React.FC<ErrorStateProps> = ({ error }) => {
   return (
