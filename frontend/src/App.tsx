@@ -1,4 +1,9 @@
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  Navigate,
+} from 'react-router-dom';
 import Header from './components/layout/Header';
 import Dashboard from './pages/Dashboard';
 import Auth from './pages/Auth';
@@ -26,7 +31,10 @@ function App() {
                 <Routes>
                   <Route path='/login' element={<Auth />} />
 
-                  <Route path='/' element={<Dashboard />} />
+                  <Route
+                    path='/'
+                    element={<Navigate to='/programs' replace />}
+                  />
                   <Route path='/programs' element={<Dashboard />} />
                   <Route path='/programs/new' element={<AddEditProgram />} />
                   <Route path='/programs/:id' element={<ProgramDetails />} />

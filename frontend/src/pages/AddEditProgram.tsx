@@ -3,173 +3,50 @@ import { useNavigate, useParams } from 'react-router-dom';
 import Button from '../components/common/Button';
 import { ArrowRight, Save, X } from 'lucide-react';
 import { ProgramTypeEnum, ProgramStatus } from '../types/program';
-import type { CreateProgramDto, Advisor, Student } from '../types/program';
-import { api } from '../lib/apiClient';
+import useProgramForm from '../hooks/useProgramForm';
+import useProgramData from '../hooks/useProgramData';
+import useProgramSubmission from '../hooks/useProgramSubmission';
 import LoadingState from '../components/LoadingState';
-import ErrorState from '../components/ErrorState';
-import { useToast } from '../contexts/ToastContext';
+import ErrorState from '../components/ErrorState'; // Corrected path
 
 const AddEditProgram: React.FC = () => {
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
-  const toast = useToast();
-  const isEditMode = !!id;
-
-  const [formData, setFormData] = useState<CreateProgramDto>({
-    name: '',
-    type: ProgramTypeEnum.SCIENTIFIC,
-    description: '',
-    status: ProgramStatus.ACTIVE,
-  });
+  const { loading, error, advisors, students, initialProgram } = useProgramData(
+    id,
+    !!id
+  );
+  const { formData, handleChange, errors, validateForm, isEditMode } =
+    useProgramForm({ initialProgram });
 
   const [selectedAdvisorId, setSelectedAdvisorId] = useState<string>('');
   const [selectedStudentIds, setSelectedStudentIds] = useState<string[]>([]);
-  const [advisors, setAdvisors] = useState<Advisor[]>([]);
-  const [students, setStudents] = useState<Student[]>([]);
-
-  const [errors, setErrors] = useState<Partial<CreateProgramDto>>({});
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        setLoading(true);
-        // Fetch advisors and students for selection
-        const [advisorsData, studentsData] = await Promise.all([
-          api.advisors.list(),
-          api.students.list(),
-        ]);
-        setAdvisors(advisorsData);
-        setStudents(studentsData);
-
-        // If edit mode, fetch program data
-        if (isEditMode && id) {
-          const programData = await api.programs.get(id);
-          setFormData({
-            name: programData.name,
-            type: programData.type,
-            description: programData.description,
-            status: programData.status,
-            currentAdvisorId: programData.currentAdvisorId || undefined,
-          });
-          setSelectedAdvisorId(programData.currentAdvisorId || '');
-
-          // Get enrolled students
-          if (programData.students && programData.students.length > 0) {
-            const enrolledStudentIds = programData.students.map(
-              (sp) => sp.studentId
-            );
-            setSelectedStudentIds(enrolledStudentIds);
-          }
-        }
-      } catch (err) {
-        console.error('Failed to fetch data:', err);
-        setError('Failed to load data for the form.');
-      } finally {
-        setLoading(false);
+    if (initialProgram) {
+      setSelectedAdvisorId(initialProgram.currentAdvisorId || '');
+      if (initialProgram.students && initialProgram.students.length > 0) {
+        setSelectedStudentIds(
+          initialProgram.students.map((sp) => sp.studentId)
+        );
       }
-    };
-
-    fetchData();
-  }, [id, isEditMode]);
-
-  const validateForm = (): boolean => {
-    const newErrors: Partial<CreateProgramDto> = {};
-
-    if (!formData.name.trim()) {
-      newErrors.name = 'اسم البرنامج مطلوب';
     }
+  }, [initialProgram]);
 
-    if (!formData.description.trim()) {
-      newErrors.description = 'وصف البرنامج مطلوب';
+  const { isSubmitting, submitProgram, submissionError } = useProgramSubmission(
+    {
+      formData,
+      selectedAdvisorId,
+      selectedStudentIds,
+      isEditMode,
+      programId: id,
     }
-
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
+  );
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
-    if (!validateForm()) {
-      return;
-    }
-
-    setIsSubmitting(true);
-    setError(null);
-
-    try {
-      // Prepare program data with advisor
-      const programDto = {
-        ...formData,
-        currentAdvisorId: selectedAdvisorId || undefined,
-      };
-
-      let programId: string;
-
-      if (isEditMode && id) {
-        // Update program
-        await api.programs.update(id, programDto);
-        programId = id;
-
-        // Get current enrolled students
-        const currentEnrollments = await api.studentPrograms.byProgram(id);
-        const currentStudentIds = currentEnrollments.map((sp) => sp.studentId);
-
-        // Remove students that are no longer selected
-        const studentsToRemove = currentStudentIds.filter(
-          (sid) => !selectedStudentIds.includes(sid)
-        );
-        for (const studentId of studentsToRemove) {
-          const enrollment = currentEnrollments.find(
-            (sp) => sp.studentId === studentId
-          );
-          if (enrollment) {
-            await api.studentPrograms.remove(enrollment.id);
-          }
-        }
-
-        // Add new students
-        const studentsToAdd = selectedStudentIds.filter(
-          (sid) => !currentStudentIds.includes(sid)
-        );
-        for (const studentId of studentsToAdd) {
-          await api.studentPrograms.create({
-            studentId,
-            programId: id,
-            joinDate: new Date().toISOString(),
-          });
-        }
-      } else {
-        // Create new program
-        const newProgram = await api.programs.create(programDto);
-        programId = newProgram.id;
-
-        // Enroll selected students
-        for (const studentId of selectedStudentIds) {
-          await api.studentPrograms.create({
-            studentId,
-            programId: newProgram.id,
-            joinDate: new Date().toISOString(),
-          });
-        }
-      }
-
-      if (isEditMode) {
-        toast.success('تم تحديث البرنامج بنجاح');
-      } else {
-        toast.success('تم إضافة البرنامج بنجاح');
-      }
-      navigate(`/programs/${programId}`); // Redirect to program details page
-    } catch (err) {
-      console.error('Failed to save program:', err);
-      const errorMsg = 'فشل في حفظ البرنامج. يرجى المحاولة مرة أخرى.';
-      setError(errorMsg);
-      toast.error(errorMsg);
-    } finally {
-      setIsSubmitting(false);
+    if (validateForm()) {
+      await submitProgram();
     }
   };
 
@@ -177,20 +54,10 @@ const AddEditProgram: React.FC = () => {
     navigate('/');
   };
 
-  const handleChange = (
-    field: keyof CreateProgramDto,
-    value: string | ProgramTypeEnum | ProgramStatus | undefined
-  ) => {
-    setFormData((prev) => ({ ...prev, [field]: value }));
-    if (errors[field]) {
-      setErrors((prev) => ({ ...prev, [field]: undefined }));
-    }
-  };
-
   const handleStudentToggle = (studentId: string) => {
     setSelectedStudentIds((prev) => {
       if (prev.includes(studentId)) {
-        return prev.filter((id) => id !== studentId);
+        return prev.filter((sid) => sid !== studentId);
       } else {
         return [...prev, studentId];
       }
@@ -198,12 +65,12 @@ const AddEditProgram: React.FC = () => {
   };
 
   if (loading) return <LoadingState />;
-  if (error) return <ErrorState error={error} />;
+  if (error || submissionError)
+    return <ErrorState error={error || submissionError || ''} />;
 
   return (
     <div className='min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50'>
       <div className='container mx-auto px-4 py-8'>
-        {/* Header */}
         <div className='mb-8'>
           <button
             onClick={handleCancel}
