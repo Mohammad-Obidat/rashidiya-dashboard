@@ -5,14 +5,7 @@ import Button from '../components/common/Button';
 import ScheduleFormModal, {
   type ScheduleFormData,
 } from '../components/modals/ScheduleFormModal';
-import {
-  FileDown,
-  Calendar as CalendarIcon,
-  Clock,
-  MapPin,
-  PlusCircle,
-  Edit,
-} from 'lucide-react';
+import { FileDown, Clock, MapPin, PlusCircle, Edit } from 'lucide-react';
 import { exportToXLSX, exportToPDF } from '../lib/exportUtils';
 import LoadingState from '../components/LoadingState';
 import ErrorState from '../components/ErrorState';
@@ -201,7 +194,6 @@ const Schedule: React.FC = () => {
                     onClick={() => handleEditSchedule(session)}
                     variant='secondary'
                     className='h-8 w-8 p-0 flex items-center justify-center'
-                    title='تعديل الجدول'
                   >
                     <Edit size={16} />
                   </Button>

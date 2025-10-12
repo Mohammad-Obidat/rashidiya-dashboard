@@ -7,6 +7,7 @@ interface ButtonProps {
   variant?: 'primary' | 'secondary' | 'danger' | 'success';
   disabled?: boolean;
   className?: string;
+  title?: string;
 }
 
 const Button: React.FC<ButtonProps> = ({

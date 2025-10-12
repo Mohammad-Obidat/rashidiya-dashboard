@@ -101,7 +101,7 @@ const Dashboard: React.FC = () => {
   if (error) return <ErrorState error={error} />;
 
   const hasActiveFilters =
-    searchTerm || filterType !== 'all' || filterStatus !== 'all';
+    !!searchTerm || filterType !== 'all' || filterStatus !== 'all';
 
   return (
     <>

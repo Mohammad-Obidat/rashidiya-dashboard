@@ -1,39 +1,54 @@
-// Enums matching Prisma schema
-export enum ProgramStatus {
-  ACTIVE = 'ACTIVE',
-  INACTIVE = 'INACTIVE',
-  ARCHIVED = 'ARCHIVED',
-}
+// =================== Constants + Type Unions ===================
 
-export enum ProgramTypeEnum {
-  SPORTS = 'SPORTS',
-  CULTURAL = 'CULTURAL',
-  SCIENTIFIC = 'SCIENTIFIC',
-  ARTISTIC = 'ARTISTIC',
-  SOCIAL = 'SOCIAL',
-  RELIGIOUS = 'RELIGIOUS',
-  OTHER = 'OTHER',
-}
+// Program Status
+export const ProgramStatus = {
+  ACTIVE: 'ACTIVE',
+  INACTIVE: 'INACTIVE',
+  ARCHIVED: 'ARCHIVED',
+} as const;
+export type ProgramStatus = (typeof ProgramStatus)[keyof typeof ProgramStatus];
 
-export enum AttendanceStatus {
-  PRESENT = 'PRESENT',
-  ABSENT = 'ABSENT',
-  EXCUSED = 'EXCUSED',
-  LATE = 'LATE',
-}
+// Program Type
+export const ProgramTypeEnum = {
+  SPORTS: 'SPORTS',
+  CULTURAL: 'CULTURAL',
+  SCIENTIFIC: 'SCIENTIFIC',
+  ARTISTIC: 'ARTISTIC',
+  SOCIAL: 'SOCIAL',
+  RELIGIOUS: 'RELIGIOUS',
+  OTHER: 'OTHER',
+} as const;
+export type ProgramTypeEnum =
+  (typeof ProgramTypeEnum)[keyof typeof ProgramTypeEnum];
 
-export enum Gender {
-  MALE = 'MALE',
-  FEMALE = 'FEMALE',
-}
+// Attendance Status
+export const AttendanceStatus = {
+  PRESENT: 'PRESENT',
+  ABSENT: 'ABSENT',
+  EXCUSED: 'EXCUSED',
+  LATE: 'LATE',
+} as const;
+export type AttendanceStatus =
+  (typeof AttendanceStatus)[keyof typeof AttendanceStatus];
 
-export enum RecurrencePattern {
-  DAILY = 'DAILY',
-  WEEKLY = 'WEEKLY',
-  MONTHLY = 'MONTHLY',
-}
+// Gender
+export const Gender = {
+  MALE: 'MALE',
+  FEMALE: 'FEMALE',
+} as const;
+export type Gender = (typeof Gender)[keyof typeof Gender];
 
-// Base interfaces matching Prisma models
+// Recurrence Pattern
+export const RecurrencePattern = {
+  DAILY: 'DAILY',
+  WEEKLY: 'WEEKLY',
+  MONTHLY: 'MONTHLY',
+} as const;
+export type RecurrencePattern =
+  (typeof RecurrencePattern)[keyof typeof RecurrencePattern];
+
+// =================== Base Interfaces ===================
+
 export interface Advisor {
   id: string;
   name: string;
@@ -126,7 +141,7 @@ export interface Program {
   attendanceRecords?: AttendanceRecord[];
 }
 
-// ============ DTOs ============
+// =================== DTOs ===================
 
 // Program DTOs
 export interface CreateProgramDto {
@@ -170,7 +185,7 @@ export interface CreateAdvisorAssignmentDto {
 
 export interface UpdateAdvisorAssignmentDto {
   advisorId?: string;
-  programId: string;
+  programId?: string;
   assignedDate?: string;
   endDate?: string;
 }
@@ -207,7 +222,7 @@ export interface CreateStudentProgramDto {
 
 export interface UpdateStudentProgramDto {
   studentId?: string;
-  programId: string;
+  programId?: string;
   joinDate?: string;
 }
 
@@ -247,7 +262,7 @@ export interface CreateAttendanceRecordDto {
 export interface UpdateAttendanceRecordDto {
   studentId?: string;
   sessionId?: string;
-  programId: string;
+  programId?: string;
   date: string;
   status?: AttendanceStatus;
   notes?: string;

@@ -137,14 +137,14 @@ const StudentForm: React.FC = () => {
           <Input
             name='name'
             label='الاسم الكامل'
-            value={formData.name}
+            value={formData.name || ''}
             onChange={handleChange}
             required
           />
           <Input
             name='studentNumber'
             label='الرقم الأكاديمي'
-            value={formData.studentNumber}
+            value={formData.studentNumber || ''}
             onChange={handleChange}
             required
           />

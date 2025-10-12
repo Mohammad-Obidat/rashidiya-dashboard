@@ -2,7 +2,7 @@ import React from 'react';
 import Button from './common/Button';
 
 interface EmptyStateProps {
-  isFiltered: string;
+  isFiltered: boolean;
   onAddProgram: () => void;
 }
 
