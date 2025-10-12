@@ -195,7 +195,9 @@ const Schedule: React.FC = () => {
                     variant='secondary'
                     className='h-8 w-8 p-0 flex items-center justify-center'
                   >
-                    <Edit size={16} />
+                    <div className='bg-white/10 backdrop-blur-sm p-2 rounded-xl group-hover:bg-white/20 transition-all duration-300 group-hover:scale-110'>
+                      <Edit size={16} />
+                    </div>
                   </Button>
                 </div>
               ))}
