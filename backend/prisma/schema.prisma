@@ -34,6 +34,8 @@ model Advisor {
   name         String
   phone        String
   email        String              @unique
+  userId       String?             @unique
+  user         User?               @relation(fields: [userId], references: [id])
   createdAt    DateTime            @default(now())
   updatedAt    DateTime            @updatedAt
   
@@ -61,10 +63,12 @@ model Student {
   id            String             @id @default(uuid())
   name          String
   studentNumber String             @unique
+  userId        String?             @unique
+  user          User?               @relation(fields: [userId], references: [id])
   grade         String
   section       String
-  gender        Gender?            @default(MALE) 
-  birthDate     DateTime?          
+  gender        Gender?            @default(MALE)
+  birthDate     DateTime?
   phone         String?
   address       String?
   createdAt     DateTime           @default(now())
@@ -132,6 +136,27 @@ model AttendanceRecord {
   @@index([programId])
   @@index([date])
 }
+
+model User {
+  id          String   @id @default(uuid())
+  email       String   @unique
+  password    String
+  name      String?
+  role        Role     @default(STUDENT)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // relations to domain entities (optional)
+  advisor     Advisor?
+  student     Student?
+}
+
+enum Role {
+  ADMIN
+  ADVISOR
+  STUDENT
+}
+
 
 enum Gender {
   MALE

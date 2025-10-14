@@ -8,10 +8,12 @@ import { AttendanceRecordModule } from './attendance-record/attendance-record.mo
 import { AdvisorAssignmentsModule } from './advisor-assignments/advisor-assignments.module';
 import { StudentProgramsModule } from './student-programs/student-programs.module';
 import { ExportModule } from './export/export.module';
+import { AuthModule } from './auth/auth.module';
 
 @Module({
   imports: [
     PrismaModule,
+    AuthModule,
     StudentsModule,
     AdvisorModule,
     ProgramModule,

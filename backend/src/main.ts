@@ -22,4 +22,7 @@ async function bootstrap() {
     `Application is running on: http://localhost:${process.env.PORT || 3000}`,
   );
 }
-bootstrap();
+bootstrap().catch((err) => {
+  console.error('Error during bootstrap:', err);
+  process.exit(1);
+});
