@@ -156,7 +156,7 @@ const ProgramDetails: React.FC = () => {
     <div className='p-6 bg-gray-50 min-h-screen'>
       <div className='flex items-center gap-4 mb-6'>
         <Button
-          onClick={() => navigate('/')}
+          onClick={() => navigate('/programs')}
           variant='secondary'
           className='h-10 w-10 p-0 flex items-center justify-center'
         >

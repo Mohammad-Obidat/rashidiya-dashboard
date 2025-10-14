@@ -51,7 +51,7 @@ const AddEditProgram: React.FC = () => {
   };
 
   const handleCancel = () => {
-    navigate('/');
+    navigate('/programs');
   };
 
   const handleStudentToggle = (studentId: string) => {

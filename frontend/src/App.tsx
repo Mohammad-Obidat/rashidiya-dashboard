@@ -17,51 +17,71 @@ import Schedule from './pages/Schedule';
 import Reports from './pages/Reports';
 import AddEditProgram from './pages/AddEditProgram';
 import { ToastProvider } from './contexts/ToastContext';
+import { AuthProvider } from './contexts/AuthProvider';
 import ToastContainer from './components/common/Toast';
+import PrivateRoute from './components/common/PrivateRoute';
 
 function App() {
   return (
-    <ToastProvider>
-      <Router>
-        <div className='min-h-screen bg-gray-50' dir='rtl'>
-          <Header />
-          <main>
-            <div className='min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50'>
-              <div className='container mx-auto px-4 py-8'>
-                <Routes>
-                  <Route path='/login' element={<Auth />} />
+    <AuthProvider>
+      <ToastProvider>
+        <Router>
+          <div className='min-h-screen bg-gray-50' dir='rtl'>
+            <Header />
+            <main>
+              <div className='min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50'>
+                <div className='container mx-auto px-4 py-8'>
+                  <Routes>
+                    {/* Public route */}
+                    <Route path='/auth' element={<Auth />} />
 
-                  <Route
-                    path='/'
-                    element={<Navigate to='/programs' replace />}
-                  />
-                  <Route path='/programs' element={<Dashboard />} />
-                  <Route path='/programs/new' element={<AddEditProgram />} />
-                  <Route path='/programs/:id' element={<ProgramDetails />} />
-                  <Route
-                    path='/programs/edit/:id'
-                    element={<AddEditProgram />}
-                  />
+                    {/* Protected routes */}
+                    <Route element={<PrivateRoute />}>
+                      <Route
+                        path='/'
+                        element={<Navigate to='/programs' replace />}
+                      />
+                      <Route path='/programs' element={<Dashboard />} />
+                      <Route
+                        path='/programs/new'
+                        element={<AddEditProgram />}
+                      />
+                      <Route
+                        path='/programs/:id'
+                        element={<ProgramDetails />}
+                      />
+                      <Route
+                        path='/programs/edit/:id'
+                        element={<AddEditProgram />}
+                      />
 
-                  <Route path='/mentors' element={<Mentors />} />
-                  <Route path='/mentors/new' element={<MentorForm />} />
-                  <Route path='/mentors/edit/:id' element={<MentorForm />} />
+                      <Route path='/mentors' element={<Mentors />} />
+                      <Route path='/mentors/new' element={<MentorForm />} />
+                      <Route
+                        path='/mentors/edit/:id'
+                        element={<MentorForm />}
+                      />
 
-                  <Route path='/students' element={<Students />} />
-                  <Route path='/students/new' element={<StudentForm />} />
-                  <Route path='/students/edit/:id' element={<StudentForm />} />
+                      <Route path='/students' element={<Students />} />
+                      <Route path='/students/new' element={<StudentForm />} />
+                      <Route
+                        path='/students/edit/:id'
+                        element={<StudentForm />}
+                      />
 
-                  <Route path='/attendance' element={<Attendance />} />
-                  <Route path='/schedule' element={<Schedule />} />
-                  <Route path='/reports' element={<Reports />} />
-                </Routes>
+                      <Route path='/attendance' element={<Attendance />} />
+                      <Route path='/schedule' element={<Schedule />} />
+                      <Route path='/reports' element={<Reports />} />
+                    </Route>
+                  </Routes>
+                </div>
               </div>
-            </div>
-          </main>
-          <ToastContainer />
-        </div>
-      </Router>
-    </ToastProvider>
+            </main>
+            <ToastContainer />
+          </div>
+        </Router>
+      </ToastProvider>
+    </AuthProvider>
   );
 }
 
