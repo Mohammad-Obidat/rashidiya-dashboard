@@ -6,7 +6,7 @@ import {
 } from 'react-router-dom';
 import Header from './components/layout/Header';
 import Dashboard from './pages/Dashboard';
-import Auth from './pages/Auth';
+import Auth from './pages/Auth/Auth';
 import ProgramDetails from './pages/ProgramDetails';
 import Mentors from './pages/Mentors';
 import MentorForm from './pages/MentorForm';
