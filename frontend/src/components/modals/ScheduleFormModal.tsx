@@ -91,6 +91,7 @@ const ScheduleFormModal: React.FC<ScheduleFormModalProps> = ({
       onClose();
     } catch (error) {
       // Error handling is done in parent component
+      console.error(error)
     } finally {
       setIsSaving(false);
     }

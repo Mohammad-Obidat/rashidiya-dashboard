@@ -19,7 +19,7 @@ const Button: React.FC<ButtonProps> = ({
   className = '',
 }) => {
   const baseStyles =
-    'px-4 py-2 rounded-lg font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 shadow-sm hover:shadow-md active:scale-95 disabled:active:scale-100';
+    'px-2 py-2 rounded-lg font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 shadow-sm hover:shadow-md active:scale-95 disabled:active:scale-100';
 
   const variantStyles = {
     primary:

@@ -76,15 +76,11 @@ const Attendance: React.FC = () => {
   const handleExportXLSX = async () => {
     try {
       const filters: Record<string, any> = {};
-      if (filterProgram !== 'all') {
-        filters.programId = filterProgram;
-      }
-      if (filterDate) {
-        filters.date = filterDate;
-      }
+      if (filterProgram !== 'all') filters.programId = filterProgram;
+      if (filterDate) filters.date = filterDate;
       await exportToXLSX('ATTENDANCE', filters, 'سجل_الحضور.xlsx');
       toast.success('تم تصدير الملف بنجاح');
-    } catch (err: any) {
+    } catch {
       toast.error('فشل في تصدير الملف');
     }
   };
@@ -92,22 +88,16 @@ const Attendance: React.FC = () => {
   const handleExportPDF = async () => {
     try {
       const filters: Record<string, any> = {};
-      if (filterProgram !== 'all') {
-        filters.programId = filterProgram;
-      }
-      if (filterDate) {
-        filters.date = filterDate;
-      }
+      if (filterProgram !== 'all') filters.programId = filterProgram;
+      if (filterDate) filters.date = filterDate;
       await exportToPDF('ATTENDANCE', filters, 'سجل_الحضور.pdf');
       toast.success('تم تصدير الملف بنجاح');
-    } catch (err: any) {
+    } catch {
       toast.error('فشل في تصدير الملف');
     }
   };
 
-  const handleTakeAttendance = () => {
-    setAttendanceModalOpen(true);
-  };
+  const handleTakeAttendance = () => setAttendanceModalOpen(true);
 
   const handleLoadStudents = async (programId: string): Promise<string[]> => {
     const enrollments = await api.studentPrograms.byProgram(programId);
@@ -124,7 +114,7 @@ const Attendance: React.FC = () => {
 
       const attendanceRecords = records.map((record) => ({
         studentId: record.studentId,
-        sessionId: sessionId,
+        sessionId,
         programId: session.programId,
         date: session.date,
         status: record.status,
@@ -134,9 +124,9 @@ const Attendance: React.FC = () => {
       const created = await api.attendanceRecords.bulkCreate(attendanceRecords);
       setAttendance([...attendance, ...created]);
       toast.success('تم تسجيل الحضور بنجاح');
-    } catch (err: any) {
+    } catch {
       toast.error('فشل في تسجيل الحضور');
-      throw err;
+      throw new Error('Failed to save attendance');
     }
   };
 
@@ -144,14 +134,17 @@ const Attendance: React.FC = () => {
   if (error) return <ErrorState error={error} />;
 
   return (
-    <div className='p-6 bg-gray-50 min-h-screen'>
-      <div className='flex justify-between items-center mb-6'>
-        <h2 className='text-3xl font-bold text-gray-800'>سجل الحضور والغياب</h2>
-        <div className='flex gap-2'>
+    <div className='p-4 sm:p-6 bg-gray-50 min-h-screen'>
+      {/* Header */}
+      <div className='flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-6'>
+        <h2 className='text-2xl sm:text-3xl font-bold text-gray-800'>
+          سجل الحضور والغياب
+        </h2>
+        <div className='flex flex-wrap gap-2 w-full sm:w-auto'>
           <Button
             onClick={handleTakeAttendance}
             variant='primary'
-            className='flex items-center gap-2'
+            className='flex-1 sm:flex-none flex items-center justify-center gap-2'
           >
             <PlusCircle size={20} />
             تسجيل حضور
@@ -159,23 +152,24 @@ const Attendance: React.FC = () => {
           <Button
             onClick={handleExportXLSX}
             variant='secondary'
-            className='flex items-center gap-2'
+            className='flex-1 sm:flex-none flex items-center justify-center gap-2'
           >
             <FileDown size={18} />
-            تصدير XLSX
+            XLSX
           </Button>
           <Button
             onClick={handleExportPDF}
             variant='secondary'
-            className='flex items-center gap-2'
+            className='flex-1 sm:flex-none flex items-center justify-center gap-2'
           >
             <FileDown size={18} />
-            تصدير PDF
+            PDF
           </Button>
         </div>
       </div>
 
-      <div className='bg-white p-4 rounded-lg shadow-sm mb-6 grid grid-cols-1 md:grid-cols-3 gap-4 items-end'>
+      {/* Filters */}
+      <div className='bg-white p-4 rounded-lg shadow-sm mb-6 grid grid-cols-1 sm:grid-cols-3 gap-4'>
         <div>
           <label className='block text-sm font-medium text-gray-700 mb-1'>
             فلترة حسب البرنامج
@@ -184,7 +178,7 @@ const Attendance: React.FC = () => {
             <select
               value={filterProgram}
               onChange={(e) => setFilterProgram(e.target.value)}
-              className='w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 appearance-none'
+              className='w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500'
             >
               <option value='all'>كل البرامج</option>
               {programs.map((p) => (
@@ -208,7 +202,7 @@ const Attendance: React.FC = () => {
               type='date'
               value={filterDate}
               onChange={(e) => setFilterDate(e.target.value)}
-              className='w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500'
+              className='w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500'
             />
             <Calendar
               size={20}
@@ -223,11 +217,12 @@ const Attendance: React.FC = () => {
           }}
           variant='secondary'
         >
-          إعادة تعيين الفلاتر
+          إعادة تعيين
         </Button>
       </div>
 
-      <div className='bg-white rounded-lg shadow overflow-x-auto'>
+      {/* Table for large screens */}
+      <div className='hidden md:block bg-white rounded-lg shadow overflow-x-auto'>
         <table className='w-full text-right'>
           <thead className='bg-gray-100 text-gray-600 uppercase text-sm'>
             <tr>
@@ -269,6 +264,51 @@ const Attendance: React.FC = () => {
         </table>
         {filteredAttendance.length === 0 && (
           <div className='text-center p-8 text-gray-500'>
+            لا توجد سجلات حضور لعرضها.
+          </div>
+        )}
+      </div>
+
+      {/* Cards for small screens */}
+      <div className='md:hidden space-y-4'>
+        {filteredAttendance.map((record) => (
+          <div
+            key={record.id}
+            className='bg-white rounded-lg shadow p-4 border border-gray-100'
+          >
+            <div className='flex justify-between mb-2'>
+              <span className='font-semibold text-gray-800'>
+                {getStudentName(record.studentId)}
+              </span>
+              <span
+                className={`text-xs font-semibold px-2 py-1 rounded-full ${
+                  getAttendanceConfig(record.status).color
+                }`}
+              >
+                {getAttendanceConfig(record.status).label}
+              </span>
+            </div>
+            <div className='text-sm text-gray-600'>
+              <p>
+                <strong>البرنامج:</strong> {getProgramName(record.programId)}
+              </p>
+              <p>
+                <strong>التاريخ:</strong>{' '}
+                {record.date
+                  ? new Date(record.date).toISOString().split('T')[0]
+                  : ''}
+              </p>
+              {record.notes && (
+                <p>
+                  <strong>ملاحظات:</strong> {record.notes}
+                </p>
+              )}
+            </div>
+          </div>
+        ))}
+
+        {filteredAttendance.length === 0 && (
+          <div className='text-center p-6 text-gray-500 bg-white rounded-lg shadow'>
             لا توجد سجلات حضور لعرضها.
           </div>
         )}

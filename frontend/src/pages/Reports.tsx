@@ -83,24 +83,25 @@ const Reports: React.FC = () => {
   if (error) return <ErrorState error={error} />;
 
   return (
-    <div className='p-6 bg-gray-50 min-h-screen'>
-      <div className='flex justify-between items-center mb-6'>
-        <h2 className='text-3xl font-bold text-gray-800'>
+    <div className="p-4 sm:p-6 bg-gray-50 min-h-screen">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+        <h2 className="text-2xl sm:text-3xl font-bold text-gray-800">
           التقارير والإحصائيات
         </h2>
-        <div className='flex gap-2'>
+        <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
           <Button
             onClick={handleGeneralReportExport}
-            variant='secondary'
-            className='flex items-center gap-2'
+            variant="secondary"
+            className="flex items-center justify-center gap-2 w-full sm:w-auto"
           >
             <FileDown size={18} />
             تصدير XLSX
           </Button>
           <Button
             onClick={handleGeneralReportPDFExport}
-            variant='secondary'
-            className='flex items-center gap-2'
+            variant="secondary"
+            className="flex items-center justify-center gap-2 w-full sm:w-auto"
           >
             <FileDown size={18} />
             تصدير PDF
@@ -108,59 +109,64 @@ const Reports: React.FC = () => {
         </div>
       </div>
 
-      <div className='grid grid-cols-1 md:grid-cols-3 gap-6 mb-6'>
-        <div className='bg-white p-6 rounded-lg shadow-sm flex items-center gap-4'>
-          <div className='p-3 bg-blue-100 rounded-full'>
-            <Activity size={24} className='text-blue-600' />
+      {/* Summary Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-6">
+        <div className="bg-white p-4 sm:p-6 rounded-lg shadow-sm flex items-center gap-4">
+          <div className="p-3 bg-blue-100 rounded-full">
+            <Activity size={24} className="text-blue-600" />
           </div>
           <div>
-            <div className='text-gray-500'>إجمالي البرامج</div>
-            <div className='text-3xl font-bold'>{totalPrograms}</div>
+            <div className="text-gray-500 text-sm sm:text-base">إجمالي البرامج</div>
+            <div className="text-2xl sm:text-3xl font-bold">{totalPrograms}</div>
           </div>
         </div>
-        <div className='bg-white p-6 rounded-lg shadow-sm flex items-center gap-4'>
-          <div className='p-3 bg-green-100 rounded-full'>
-            <Users size={24} className='text-green-600' />
+
+        <div className="bg-white p-4 sm:p-6 rounded-lg shadow-sm flex items-center gap-4">
+          <div className="p-3 bg-green-100 rounded-full">
+            <Users size={24} className="text-green-600" />
           </div>
           <div>
-            <div className='text-gray-500'>إجمالي الطلاب</div>
-            <div className='text-3xl font-bold'>{totalStudents}</div>
+            <div className="text-gray-500 text-sm sm:text-base">إجمالي الطلاب</div>
+            <div className="text-2xl sm:text-3xl font-bold">{totalStudents}</div>
           </div>
         </div>
-        <div className='bg-white p-6 rounded-lg shadow-sm flex items-center gap-4'>
-          <div className='p-3 bg-purple-100 rounded-full'>
-            <ClipboardCheck size={24} className='text-purple-600' />
+
+        <div className="bg-white p-4 sm:p-6 rounded-lg shadow-sm flex items-center gap-4">
+          <div className="p-3 bg-purple-100 rounded-full">
+            <ClipboardCheck size={24} className="text-purple-600" />
           </div>
           <div>
-            <div className='text-gray-500'>إجمالي الحضور</div>
-            <div className='text-3xl font-bold'>{totalAttendance}</div>
+            <div className="text-gray-500 text-sm sm:text-base">إجمالي الحضور</div>
+            <div className="text-2xl sm:text-3xl font-bold">{totalAttendance}</div>
           </div>
         </div>
       </div>
 
-      <div className='grid grid-cols-1 lg:grid-cols-2 gap-6'>
-        <div className='bg-white p-6 rounded-lg shadow-sm'>
-          <h3 className='text-xl font-bold mb-4 flex items-center gap-2'>
-            <PieChart /> توزيع البرامج حسب النوع
+      {/* Charts / Lists */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
+        <div className="bg-white p-4 sm:p-6 rounded-lg shadow-sm">
+          <h3 className="text-lg sm:text-xl font-bold mb-4 flex items-center gap-2">
+            <PieChart className="text-blue-600" /> توزيع البرامج حسب النوع
           </h3>
-          <div className='space-y-2'>
+          <div className="space-y-2">
             {programsByType.map(({ type, count }) => (
-              <div key={type} className='flex justify-between items-center'>
-                <span>{type}</span>
-                <span className='font-bold'>{count}</span>
+              <div key={type} className="flex justify-between items-center text-sm sm:text-base">
+                <span className="truncate">{type}</span>
+                <span className="font-bold">{count}</span>
               </div>
             ))}
           </div>
         </div>
-        <div className='bg-white p-6 rounded-lg shadow-sm'>
-          <h3 className='text-xl font-bold mb-4 flex items-center gap-2'>
-            <BarChart /> توزيع الطلاب حسب الصف
+
+        <div className="bg-white p-4 sm:p-6 rounded-lg shadow-sm">
+          <h3 className="text-lg sm:text-xl font-bold mb-4 flex items-center gap-2">
+            <BarChart className="text-green-600" /> توزيع الطلاب حسب الصف
           </h3>
-          <div className='space-y-2'>
+          <div className="space-y-2">
             {studentsByGrade.map(({ grade, count }) => (
-              <div key={grade} className='flex justify-between items-center'>
+              <div key={grade} className="flex justify-between items-center text-sm sm:text-base">
                 <span>الصف {grade}</span>
-                <span className='font-bold'>{count}</span>
+                <span className="font-bold">{count}</span>
               </div>
             ))}
           </div>

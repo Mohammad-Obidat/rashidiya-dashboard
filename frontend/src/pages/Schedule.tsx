@@ -46,9 +46,7 @@ const Schedule: React.FC = () => {
   const sessionsByDate = useMemo(() => {
     return sessions.reduce((acc, session) => {
       const date = new Date(session.date).toDateString();
-      if (!acc[date]) {
-        acc[date] = [];
-      }
+      if (!acc[date]) acc[date] = [];
       acc[date].push(session);
       return acc;
     }, {} as Record<string, Session[]>);
@@ -58,7 +56,7 @@ const Schedule: React.FC = () => {
     try {
       await exportToXLSX('SESSIONS', {}, 'الجدول_الزمني.xlsx');
       toast.success('تم تصدير الملف بنجاح');
-    } catch (err: any) {
+    } catch {
       toast.error('فشل في تصدير الملف');
     }
   };
@@ -67,7 +65,7 @@ const Schedule: React.FC = () => {
     try {
       await exportToPDF('SESSIONS', {}, 'الجدول_الزمني.pdf');
       toast.success('تم تصدير الملف بنجاح');
-    } catch (err: any) {
+    } catch {
       toast.error('فشل في تصدير الملف');
     }
   };
@@ -85,7 +83,6 @@ const Schedule: React.FC = () => {
   const handleSaveSchedule = async (formData: ScheduleFormData) => {
     try {
       if (editingSession) {
-        // Update existing session
         const updated = await api.sessions.update(editingSession.id, {
           programId: formData.programId,
           date: formData.date,
@@ -101,7 +98,6 @@ const Schedule: React.FC = () => {
         );
         toast.success('تم تحديث الجدول الزمني بنجاح');
       } else {
-        // Create new session
         const created = await api.sessions.create({
           programId: formData.programId,
           date: formData.date,
@@ -115,9 +111,8 @@ const Schedule: React.FC = () => {
         setSessions([...sessions, created]);
         toast.success('تم إضافة الجدول الزمني بنجاح');
       }
-    } catch (err: any) {
+    } catch {
       toast.error('فشل في حفظ الجدول الزمني');
-      throw err;
     }
   };
 
@@ -125,32 +120,33 @@ const Schedule: React.FC = () => {
   if (error) return <ErrorState error={error} />;
 
   return (
-    <div className='p-6 bg-gray-50 min-h-screen'>
-      <div className='flex justify-between items-center mb-6'>
-        <h2 className='text-3xl font-bold text-gray-800'>
+    <div className="p-4 sm:p-6 bg-gray-50 min-h-screen">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+        <h2 className="text-2xl sm:text-3xl font-bold text-gray-800">
           الجدول الزمني للبرامج
         </h2>
-        <div className='flex gap-2'>
+        <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
           <Button
             onClick={handleAddSchedule}
-            variant='primary'
-            className='flex items-center gap-2'
+            variant="primary"
+            className="flex items-center justify-center gap-2 w-full sm:w-auto"
           >
             <PlusCircle size={20} />
             إضافة جدول جديد
           </Button>
           <Button
             onClick={handleExportXLSX}
-            variant='secondary'
-            className='flex items-center gap-2'
+            variant="secondary"
+            className="flex items-center justify-center gap-2 w-full sm:w-auto"
           >
             <FileDown size={18} />
             تصدير XLSX
           </Button>
           <Button
             onClick={handleExportPDF}
-            variant='secondary'
-            className='flex items-center gap-2'
+            variant="secondary"
+            className="flex items-center justify-center gap-2 w-full sm:w-auto"
           >
             <FileDown size={18} />
             تصدير PDF
@@ -158,11 +154,11 @@ const Schedule: React.FC = () => {
         </div>
       </div>
 
-      {/* For simplicity, a list view is implemented. A full calendar view would require a library like FullCalendar. */}
-      <div className='bg-white p-6 rounded-lg shadow-sm'>
+      {/* Sessions List */}
+      <div className="bg-white p-4 sm:p-6 rounded-lg shadow-sm">
         {Object.entries(sessionsByDate).map(([date, dateSessions]) => (
-          <div key={date} className='mb-8'>
-            <h3 className='text-xl font-bold mb-4 border-b pb-2'>
+          <div key={date} className="mb-8">
+            <h3 className="text-lg sm:text-xl font-bold mb-4 border-b pb-2 text-gray-800">
               {new Date(date).toLocaleDateString('ar-EG', {
                 weekday: 'long',
                 year: 'numeric',
@@ -170,35 +166,36 @@ const Schedule: React.FC = () => {
                 day: 'numeric',
               })}
             </h3>
-            <div className='space-y-4'>
+
+            <div className="space-y-4">
               {dateSessions.map((session) => (
                 <div
                   key={session.id}
-                  className='p-4 border rounded-lg hover:bg-gray-50 flex justify-between items-start'
+                  className="p-4 border rounded-lg hover:bg-gray-50 flex flex-col-2 sm:flex-row justify-between sm:items-start gap-3 transition-all"
                 >
-                  <div>
-                    <h4 className='font-bold text-lg'>
+                  <div className="flex items-center justify-between">
+                    <div className="flex-l">
+                    <h4 className="font-bold text-base sm:text-lg text-gray-800 break-words">
                       {getProgramName(session.programId)}
                     </h4>
-                    <div className='flex items-center gap-4 text-gray-600 mt-2'>
-                      <div className='flex items-center gap-2'>
-                        <Clock size={16} /> {session.startTime} -{' '}
-                        {session.endTime}
+
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:gap-4 text-gray-600 mt-2 text-sm sm:text-base">
+                      <div className="flex items-center gap-2">
+                        <Clock size={16} /> {session.startTime} - {session.endTime}
                       </div>
-                      <div className='flex items-center gap-2'>
+                      <div className="flex items-center gap-2 mt-1 sm:mt-0">
                         <MapPin size={16} /> {session.location}
                       </div>
                     </div>
-                  </div>
-                  <Button
-                    onClick={() => handleEditSchedule(session)}
-                    variant='secondary'
-                    className='h-8 w-8 p-0 flex items-center justify-center'
-                  >
-                    <div className='bg-white/10 backdrop-blur-sm p-2 rounded-xl group-hover:bg-white/20 transition-all duration-300 group-hover:scale-110'>
-                      <Edit size={16} />
-                    </div>
-                  </Button>
+                        </div>
+                      </div>
+                        <Button
+                          onClick={() => handleEditSchedule(session)}
+                          variant="secondary"
+                          className="h-9 w-9 flex items-center justify-center"
+                        >
+                          <Edit size={20} />
+                        </Button>
                 </div>
               ))}
             </div>
@@ -206,6 +203,7 @@ const Schedule: React.FC = () => {
         ))}
       </div>
 
+      {/* Modal */}
       <ScheduleFormModal
         isOpen={scheduleModalOpen}
         onClose={() => setScheduleModalOpen(false)}
