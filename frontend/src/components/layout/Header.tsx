@@ -75,7 +75,7 @@ const Header: React.FC = () => {
           isScrolled ? 'shadow-xl' : ''
         }`}
       >
-        <div className='container mx-auto px-3 sm:px-4 lg:px-6'>
+        <div className='container px-2 sm:px-4 lg:px-2'>
           <div className='flex items-center justify-between py-2.5 sm:py-3 gap-2 sm:gap-4'>
             {/* Logo Section */}
             <Link
@@ -103,7 +103,7 @@ const Header: React.FC = () => {
             </Link>
 
             {/* Desktop Navigation */}
-            <nav className='hidden lg:flex items-center gap-1 xl:gap-2'>
+            <nav className='hidden lg:flex mx-auto items-center gap-1 xl:gap-2'>
               {navLinks.map(({ path, icon: Icon, label }) => (
                 <Link
                   key={path}
@@ -121,9 +121,9 @@ const Header: React.FC = () => {
               ))}
             </nav>
 
-            {/* User Info & Logout (Desktop) */}
+            {/* User Info & Logout */}
             {isAuthenticated && (
-              <div className='hidden lg:flex items-center gap-2 xl:gap-3 pl-2 xl:pl-4 border-l border-white/20'>
+              <div className='hidden lg:flex items-center gap-2 xl:gap-3 px-2 xl:px-4 border-r border-white/20 absolute top-4 left-2 z-50'>
                 <div className='text-right'>
                   <p className='text-xs xl:text-sm font-medium truncate max-w-[120px] xl:max-w-[200px]'>
                     {user?.name || user?.email}

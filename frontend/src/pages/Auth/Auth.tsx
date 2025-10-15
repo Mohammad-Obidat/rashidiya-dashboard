@@ -48,7 +48,7 @@ const Auth: React.FC = () => {
             نظام إدارة البرامج اللامنهجية
           </h1>
           <div className='flex items-center justify-center gap-2'>
-            <School className='w-10 h-10 text-black' />
+            {/* <School className='w-10 h-10 text-black' /> */}
             <p className='text-gray-600'>مدرسة الرشيدية</p>
           </div>
         </div>
