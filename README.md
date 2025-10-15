@@ -70,7 +70,7 @@ npx prisma migrate dev
 ```bash
 npm run start:dev
 ```
-Backend runs on **http://localhost:5000**
+Backend runs on **http://localhost:3000**
 
 ---
 
