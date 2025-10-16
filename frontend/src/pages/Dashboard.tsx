@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { getAllStatuses, getAllTypes } from '../config/programConfig';
 import DashboardHeader from '../components/dashboard/DashboardHeader';
 import SearchFilterBar from '../components/common/SearchFilterBar';
@@ -12,6 +13,8 @@ import useProgramFiltering from '../hooks/useProgramFiltering';
 import useProgramActions from '../hooks/useProgramActions';
 
 const Dashboard: React.FC = () => {
+  const { t, i18n } = useTranslation();
+
   const { programs, loading, error, setPrograms } = usePrograms();
   const {
     searchTerm,
@@ -42,10 +45,7 @@ const Dashboard: React.FC = () => {
   const typeOptions = getAllTypes();
 
   useEffect(() => {
-    const handleOnline = () => {
-      setIsOnline(true);
-    };
-
+    const handleOnline = () => setIsOnline(true);
     const handleOffline = () => setIsOnline(false);
 
     window.addEventListener('online', handleOnline);
@@ -72,6 +72,15 @@ const Dashboard: React.FC = () => {
       document.removeEventListener('visibilitychange', handleVisibilityChange);
   }, [isOnline, lastUpdate]);
 
+  // Get current language for locale formatting
+  const currentLanguage = i18n.language;
+  const locale =
+    currentLanguage === 'ar'
+      ? 'ar-EG'
+      : currentLanguage === 'he'
+      ? 'he-IL'
+      : 'en-US';
+
   if (loading) return <LoadingState />;
   if (error) return <ErrorState error={error} />;
 
@@ -79,18 +88,18 @@ const Dashboard: React.FC = () => {
     <>
       {/* Offline Banner */}
       {!isOnline && (
-        <div className='sticky top-0 z-40 bg-yellow-500 text-white px-4 py-2 text-center text-sm font-medium shadow-md'>
-          <span className='inline-flex items-center gap-2'>
-            <span className='w-2 h-2 bg-white rounded-full animate-pulse' />
-            أنت غير متصل بالإنترنت - You are offline
+        <div className="sticky top-0 z-40 bg-yellow-500 text-white px-4 py-2 text-center text-sm font-medium shadow-md">
+          <span className="inline-flex items-center gap-2">
+            <span className="w-2 h-2 bg-white rounded-full animate-pulse" />
+            {t('offline_banner')}
           </span>
         </div>
       )}
 
       {/* Main Content Container */}
-      <div className='container mx-auto px-3 sm:px-4 lg:px-6 py-4 sm:py-6 lg:py-8 max-w-7xl'>
+      <div className="container mx-auto px-3 sm:px-4 lg:px-6 py-4 sm:py-6 lg:py-8 max-w-7xl">
         {/* Dashboard Header */}
-        <div className='mb-4 sm:mb-6 lg:mb-8'>
+        <div className="mb-4 sm:mb-6 lg:mb-8">
           <DashboardHeader
             programCount={programs.length}
             onAddProgram={handleAddProgram}
@@ -98,7 +107,7 @@ const Dashboard: React.FC = () => {
         </div>
 
         {/* Search and Filter Bar */}
-        <div className='mb-4 sm:mb-6'>
+        <div className="mb-4 sm:mb-6">
           <SearchFilterBar
             searchTerm={searchTerm}
             onSearchChange={setSearchTerm}
@@ -115,20 +124,19 @@ const Dashboard: React.FC = () => {
 
           {/* Results Info Bar */}
           {hasActiveFilters && (
-            <div className='bg-blue-50 border border-blue-200 rounded-lg px-3 sm:px-4 py-2 sm:py-3 mt-3'>
-              <div className='flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2'>
-                <p className='text-xs sm:text-sm text-blue-800'>
-                  <span className='font-semibold'>
-                    {filteredPrograms.length}
-                  </span>{' '}
-                  من <span className='font-semibold'>{programs.length}</span>{' '}
-                  برنامج
+            <div className="bg-blue-50 border border-blue-200 rounded-lg px-3 sm:px-4 py-2 sm:py-3 mt-3">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                <p className="text-xs sm:text-sm text-blue-800">
+                  {t('results_info', {
+                    filtered: filteredPrograms.length,
+                    total: programs.length,
+                  })}
                 </p>
                 <button
                   onClick={resetFilters}
-                  className='text-xs sm:text-sm text-blue-600 hover:text-blue-800 font-medium underline self-start sm:self-auto'
+                  className="text-xs sm:text-sm text-blue-600 hover:text-blue-800 font-medium underline self-start sm:self-auto"
                 >
-                  إعادة تعيين الفلاتر
+                  {t('reset_filters')}
                 </button>
               </div>
             </div>
@@ -136,14 +144,14 @@ const Dashboard: React.FC = () => {
         </div>
 
         {/* Content Area */}
-        <div className='min-h-[400px]'>
+        <div className="min-h-[400px]">
           {filteredPrograms.length === 0 ? (
             <EmptyState
               isFiltered={hasActiveFilters}
               onAddProgram={handleAddProgram}
             />
           ) : (
-            <div className='animate-fadeIn'>
+            <div className="animate-fadeIn">
               <ProgramsGrid
                 programs={filteredPrograms}
                 onView={handleView}
@@ -156,9 +164,9 @@ const Dashboard: React.FC = () => {
 
         {/* Last Update Info */}
         {isOnline && (
-          <div className='mt-6 text-center text-xs text-gray-500'>
-            آخر تحديث:{' '}
-            {lastUpdate.toLocaleTimeString('ar-EG', {
+          <div className="mt-6 text-center text-xs text-gray-500">
+            {t('last_update')}:{' '}
+            {lastUpdate.toLocaleTimeString(locale, {
               hour: '2-digit',
               minute: '2-digit',
             })}

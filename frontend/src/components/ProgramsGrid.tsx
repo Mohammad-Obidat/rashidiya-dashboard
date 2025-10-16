@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import ProgramCard from './ProgramCard';
 import type { Program } from '../types/program';
 
@@ -15,8 +16,10 @@ const ProgramsGrid: React.FC<ProgramsGridProps> = ({
   onEdit,
   onDelete,
 }) => {
+  const { t } = useTranslation();
+
   return (
-    <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6'>
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
       {programs.map((program) => (
         <ProgramCard
           key={program.id}
