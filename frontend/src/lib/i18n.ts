@@ -67,6 +67,17 @@ const resources = {
       dashboard_delete_cancel: 'Cancel',
       dashboard_deleting: 'Deleting...',
 
+      // SearchFilterBar keys
+      search_filter_title: 'Search & Filter',
+      search_label: 'Search',
+      search_placeholder: 'Search by name...',
+      program_type_label: 'Program Type',
+      all_types_option: 'All Types',
+      status_label: 'Status',
+      all_statuses_option: 'All Statuses',
+      showing_results: 'Showing {{filtered}} of {{total}} result(s)',
+      reset_filters_button: 'Reset Filters',
+
       // AddEditProgram translations
       back_to_list: 'Back to List',
       edit_program: 'Edit Program',
@@ -180,6 +191,17 @@ const resources = {
       dashboard_delete_cancel: 'إلغاء',
       dashboard_deleting: 'جاري الحذف...',
 
+      // SearchFilterBar keys
+      search_filter_title: 'البحث والتصفية',
+      search_label: 'بحث',
+      search_placeholder: 'ابحث بالاسم...',
+      program_type_label: 'نوع البرنامج',
+      all_types_option: 'جميع الأنواع',
+      status_label: 'الحالة',
+      all_statuses_option: 'جميع الحالات',
+      showing_results: 'عرض {{filtered}} من {{total}} نتيجة',
+      reset_filters_button: 'إعادة تعيين الفلاتر',
+
       // AddEditProgram translations
       back_to_list: 'العودة إلى القائمة',
       edit_program: 'تعديل البرنامج',
@@ -290,6 +312,17 @@ const resources = {
       dashboard_delete_confirm: 'מחק',
       dashboard_delete_cancel: 'ביטול',
       dashboard_deleting: 'מוחק...',
+
+      // SearchFilterBar keys
+      search_filter_title: 'חיפוש וסינון',
+      search_label: 'חיפוש',
+      search_placeholder: 'חפש לפי שם...',
+      program_type_label: 'סוג התוכנית',
+      all_types_option: 'כל הסוגים',
+      status_label: 'מצב',
+      all_statuses_option: 'כל המצבים',
+      showing_results: 'מציג {{filtered}} מתוך {{total}} תוצאות',
+      reset_filters_button: 'איפוס מסננים',
 
       // AddEditProgram translations
       back_to_list: 'חזור לרשימה',
