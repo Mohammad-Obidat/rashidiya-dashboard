@@ -7,18 +7,25 @@ import type {
   Session,
   Student,
   AttendanceStatus,
+  AttendanceRecord,
 } from '../../types/program';
 
-interface AttendanceRecord {
+interface AttendanceFormRecord {
   studentId: string;
   status: AttendanceStatus;
-  notes: string;
+  notes: string | null;
 }
 
 interface AttendanceFormModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSave: (sessionId: string, records: AttendanceRecord[]) => Promise<void>;
+  onSave: (
+    sessionId: string,
+    records: AttendanceFormRecord[],
+    isBulk: boolean,
+    recordId?: string
+  ) => Promise<void>;
+  editingRecord: AttendanceRecord | null;
   programs: Program[];
   sessions: Session[];
   students: Student[];
@@ -33,24 +40,39 @@ const AttendanceFormModal: React.FC<AttendanceFormModalProps> = ({
   sessions,
   students,
   onLoadStudents,
+  editingRecord,
 }) => {
   const { t, i18n } = useTranslation();
   const [selectedProgram, setSelectedProgram] = useState<string>('');
   const [selectedSession, setSelectedSession] = useState<string>('');
   const [attendanceRecords, setAttendanceRecords] = useState<
-    AttendanceRecord[]
+    AttendanceFormRecord[]
   >([]);
   const [isSaving, setIsSaving] = useState(false);
   const [validationError, setValidationError] = useState<string>('');
 
   useEffect(() => {
     if (isOpen) {
-      setSelectedProgram('');
-      setSelectedSession('');
-      setAttendanceRecords([]);
       setValidationError('');
+      if (editingRecord) {
+        // Editing mode: pre-populate with existing record data
+        setSelectedProgram(editingRecord.programId);
+        setSelectedSession(editingRecord.sessionId);
+        setAttendanceRecords([
+          {
+            studentId: editingRecord.studentId,
+            status: editingRecord.status,
+            notes: editingRecord.notes ?? '',
+          },
+        ]);
+      } else {
+        // New record mode: reset form
+        setSelectedProgram('');
+        setSelectedSession('');
+        setAttendanceRecords([]);
+      }
     }
-  }, [isOpen]);
+  }, [isOpen, editingRecord, sessions]);
 
   const handleProgramChange = async (programId: string) => {
     setSelectedProgram(programId);
@@ -62,6 +84,9 @@ const AttendanceFormModal: React.FC<AttendanceFormModalProps> = ({
   const handleSessionChange = async (sessionId: string) => {
     setSelectedSession(sessionId);
     setValidationError('');
+
+    // If editing, don't auto-load students
+    if (editingRecord) return;
 
     if (!sessionId) {
       setAttendanceRecords([]);
@@ -101,18 +126,35 @@ const AttendanceFormModal: React.FC<AttendanceFormModalProps> = ({
   };
 
   const handleSave = async () => {
-    if (!selectedSession || attendanceRecords.length === 0) {
+    const isBulk = !editingRecord;
+
+    // Validation
+    if (!selectedSession) {
       setValidationError(t('attendance_validation_error'));
+      return;
+    }
+
+    if (attendanceRecords.length === 0) {
+      setValidationError(t('attendance_validation_error'));
+      return;
+    }
+
+    if (!isBulk && attendanceRecords.length !== 1) {
+      setValidationError(t('attendance_edit_single_error'));
       return;
     }
 
     setIsSaving(true);
     setValidationError('');
     try {
-      await onSave(selectedSession, attendanceRecords);
+      await onSave(
+        selectedSession,
+        attendanceRecords,
+        isBulk,
+        editingRecord?.id
+      );
       onClose();
     } catch (error) {
-      // Error handling is done in parent component
       console.error(error);
     } finally {
       setIsSaving(false);
@@ -120,9 +162,11 @@ const AttendanceFormModal: React.FC<AttendanceFormModalProps> = ({
   };
 
   const handleClose = () => {
-    setSelectedProgram('');
-    setSelectedSession('');
-    setAttendanceRecords([]);
+    if (!editingRecord) {
+      setSelectedProgram('');
+      setSelectedSession('');
+      setAttendanceRecords([]);
+    }
     setValidationError('');
     onClose();
   };
@@ -135,11 +179,26 @@ const AttendanceFormModal: React.FC<AttendanceFormModalProps> = ({
     (s) => s.programId === selectedProgram
   );
 
+  const formatSessionLabel = (session: Session) => {
+    const date = new Date(session.date).toLocaleDateString(
+      i18n.language === 'ar'
+        ? 'ar-EG'
+        : i18n.language === 'he'
+        ? 'he-IL'
+        : 'en-US'
+    );
+    return `${date} - ${session.startTime} ${t('to')} ${session.endTime}`;
+  };
+
   return (
     <Modal
       isOpen={isOpen}
       onClose={handleClose}
-      title={t('record_attendance_title')}
+      title={
+        editingRecord
+          ? t('edit_attendance_title')
+          : t('record_attendance_title')
+      }
       footer={
         <>
           <Button variant="secondary" onClick={handleClose} disabled={isSaving}>
@@ -148,7 +207,9 @@ const AttendanceFormModal: React.FC<AttendanceFormModalProps> = ({
           <Button
             variant="primary"
             onClick={handleSave}
-            disabled={isSaving || attendanceRecords.length === 0}
+            disabled={
+              isSaving || !selectedSession || attendanceRecords.length === 0
+            }
           >
             {isSaving ? t('form_saving') : t('save')}
           </Button>
@@ -162,14 +223,16 @@ const AttendanceFormModal: React.FC<AttendanceFormModalProps> = ({
           </div>
         )}
 
+        {/* Program Selection */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
-            {t('program_required')}
+            {t('program_required')} *
           </label>
           <select
             value={selectedProgram}
             onChange={(e) => handleProgramChange(e.target.value)}
-            className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            disabled={!!editingRecord}
+            className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
           >
             <option value="">{t('select_program_option')}</option>
             {programs.map((program) => (
@@ -180,56 +243,60 @@ const AttendanceFormModal: React.FC<AttendanceFormModalProps> = ({
           </select>
         </div>
 
+        {/* Session Selection */}
         {selectedProgram && (
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              {t('session_required')}
+              {t('session_required')} *
             </label>
             <select
               value={selectedSession}
               onChange={(e) => handleSessionChange(e.target.value)}
-              className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              disabled={!!editingRecord || filteredSessions.length === 0}
+              className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
             >
               <option value="">{t('select_session_option')}</option>
               {filteredSessions.map((session) => (
                 <option key={session.id} value={session.id}>
-                  {new Date(session.date).toLocaleDateString(
-                    i18n.language === 'ar'
-                      ? 'ar-EG'
-                      : i18n.language === 'he'
-                      ? 'he-IL'
-                      : 'en-US'
-                  )}{' '}
-                  - {session.startTime} {t('to')} {session.endTime}
+                  {formatSessionLabel(session)}
                 </option>
               ))}
             </select>
+            {filteredSessions.length === 0 && selectedProgram && (
+              <p className="text-sm text-gray-500 mt-1">
+                {t('no_sessions_available')}
+              </p>
+            )}
           </div>
         )}
 
+        {/* Attendance Records Table */}
         {attendanceRecords.length > 0 && (
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              {t('students_list')}
+              {editingRecord ? t('edit_attendance_record') : t('students_list')}
             </label>
             <div className="max-h-96 overflow-y-auto border border-gray-300 rounded-md">
               <table className="w-full">
                 <thead className="bg-gray-100 sticky top-0">
                   <tr>
-                    <th className="p-2 text-right text-sm">
+                    <th className="p-2 text-center text-sm font-semibold">
                       {t('student_name')}
                     </th>
-                    <th className="p-2 text-right text-sm">
+                    <th className="p-2 text-center text-sm font-semibold">
                       {t('attendance_status')}
                     </th>
-                    <th className="p-2 text-right text-sm">
+                    <th className="p-2 text-center text-sm font-semibold">
                       {t('attendance_notes')}
                     </th>
                   </tr>
                 </thead>
                 <tbody>
                   {attendanceRecords.map((record) => (
-                    <tr key={record.studentId} className="border-b">
+                    <tr
+                      key={record.studentId}
+                      className="border-b hover:bg-gray-50"
+                    >
                       <td className="p-2 text-sm">
                         {getStudentName(record.studentId)}
                       </td>
@@ -260,7 +327,7 @@ const AttendanceFormModal: React.FC<AttendanceFormModalProps> = ({
                       <td className="p-2">
                         <input
                           type="text"
-                          value={record.notes}
+                          value={record.notes ?? ''}
                           onChange={(e) =>
                             handleAttendanceChange(
                               record.studentId,

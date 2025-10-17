@@ -257,6 +257,8 @@ const resources = {
       // Attendance Page
       attendance_title: 'Attendance & Absences Log',
       take_attendance: 'Record Attendance',
+      edit_attendance_title: 'Edit Attendance',
+      edit_attendance_record: 'Edit Attendance Record',
       filter_by_program: 'Filter by Program',
       filter_by_date: 'Filter by Date',
       all_programs: 'All Programs',
@@ -630,6 +632,8 @@ const resources = {
       // Attendance Page
       attendance_title: 'سجل الحضور والغياب',
       take_attendance: 'تسجيل حضور',
+      edit_attendance_title: 'تعديل الحضور',
+      edit_attendance_record: 'تعديل سجل الحضور',
       filter_by_program: 'فلترة حسب البرنامج',
       filter_by_date: 'فلترة حسب التاريخ',
       all_programs: 'كل البرامج',
@@ -1001,6 +1005,8 @@ const resources = {
       // Attendance Page
       attendance_title: 'רישום נוכחות והיעדרות',
       take_attendance: 'תיעדן נוכחות',
+      edit_attendance_title: 'עריכת נוכחות',
+      edit_attendance_record: 'עריכת רשומת נוכחות',
       filter_by_program: 'סנן לפי תוכנית',
       filter_by_date: 'סנן לפי תאריך',
       all_programs: 'כל התוכניות',
@@ -1047,6 +1053,7 @@ const resources = {
 
       // AttendanceFormModal
       record_attendance_title: 'תיעוד נוכחות',
+
       load_students_failed: 'נכשל בטעינת סטודנטים',
       attendance_validation_error: 'אנא בחר מפגש לפחות ורשומה אחת',
       program_required: 'התוכנית נדרשת',

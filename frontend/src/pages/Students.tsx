@@ -20,7 +20,6 @@ import { exportToXLSX, exportToPDF } from '../lib/exportUtils';
 import LoadingState from '../components/LoadingState';
 import ErrorState from '../components/ErrorState';
 import { useToast } from '../contexts/ToastContext';
-import { sectionOptions, getAllGenders } from '../config/programConfig';
 
 const Students: React.FC = () => {
   const { t, i18n } = useTranslation();
@@ -39,19 +38,6 @@ const Students: React.FC = () => {
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
 
   const isRTL = i18n.language === 'ar' || i18n.language === 'he';
-
-  // Dynamically get translated options based on current language
-  const getTranslatedSectionOptions = () =>
-    sectionOptions.map((opt) => ({
-      value: opt.value,
-      label: t(`section.${opt.value}`),
-    }));
-
-  const getTranslatedGenderOptions = () =>
-    getAllGenders().map((opt) => ({
-      value: opt.value,
-      label: t(`gender.${opt.value}`),
-    }));
 
   useEffect(() => {
     const fetchData = async () => {
