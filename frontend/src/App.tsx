@@ -1,28 +1,28 @@
-import { useEffect } from "react";
+import { useEffect } from 'react';
 import {
   BrowserRouter as Router,
   Routes,
   Route,
   Navigate,
-} from "react-router-dom";
-import Header from "./components/layout/Header";
-import { useTranslation } from "react-i18next";
-import { getLanguageDirection } from "./lib/i18n.ts";
-import Dashboard from "./pages/Dashboard";
-import Auth from "./pages/Auth/Auth";
-import ProgramDetails from "./pages/ProgramDetails";
-import Mentors from "./pages/Mentors";
-import MentorForm from "./pages/MentorForm";
-import Students from "./pages/Students";
-import StudentForm from "./pages/StudentForm";
-import Attendance from "./pages/Attendance";
-import Schedule from "./pages/Schedule";
-import Reports from "./pages/Reports";
-import AddEditProgram from "./pages/AddEditProgram";
-import { ToastProvider } from "./contexts/ToastContext";
-import { AuthProvider } from "./contexts/AuthProvider";
-import ToastContainer from "./components/common/Toast";
-import PrivateRoute from "./components/common/PrivateRoute";
+} from 'react-router-dom';
+import Header from './components/layout/Header';
+import { useTranslation } from 'react-i18next';
+import { getLanguageDirection } from './lib/i18n';
+import Dashboard from './pages/Dashboard';
+import Auth from './pages/Auth/Auth';
+import ProgramDetails from './pages/ProgramDetails';
+import Mentors from './pages/Mentors';
+import MentorForm from './pages/MentorForm';
+import Students from './pages/Students';
+import StudentForm from './pages/StudentForm';
+import Attendance from './pages/Attendance';
+import Schedule from './pages/Schedule';
+import Reports from './pages/Reports';
+import AddEditProgram from './pages/AddEditProgram';
+import { ToastProvider } from './contexts/ToastContext';
+import { AuthProvider } from './contexts/AuthProvider';
+import ToastContainer from './components/common/Toast';
+import PrivateRoute from './components/common/PrivateRoute';
 
 function App() {
   const { i18n } = useTranslation();

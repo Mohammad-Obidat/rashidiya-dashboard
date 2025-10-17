@@ -6,7 +6,14 @@ import Button from '../components/common/Button';
 import ScheduleFormModal, {
   type ScheduleFormData,
 } from '../components/modals/ScheduleFormModal';
-import { FileDown, Clock, MapPin, PlusCircle, Edit } from 'lucide-react';
+import {
+  FileDown,
+  Clock,
+  MapPin,
+  PlusCircle,
+  Edit,
+  Trash2,
+} from 'lucide-react';
 import { exportToXLSX, exportToPDF } from '../lib/exportUtils';
 import LoadingState from '../components/LoadingState';
 import ErrorState from '../components/ErrorState';
@@ -80,6 +87,17 @@ const Schedule: React.FC = () => {
   const handleEditSchedule = (session: Session) => {
     setEditingSession(session);
     setScheduleModalOpen(true);
+  };
+
+  const handleDeleteSchedule = async (id: string) => {
+    if (!window.confirm(t('dashboard_delete_message'))) return;
+    try {
+      await api.sessions.remove(id);
+      setSessions(sessions.filter((s) => s.id !== id));
+      toast.success(t('schedule_deleted_success'));
+    } catch {
+      toast.error(t('schedule_delete_failed'));
+    }
   };
 
   const handleSaveSchedule = async (formData: ScheduleFormData) => {
@@ -200,13 +218,24 @@ const Schedule: React.FC = () => {
                         </div>
                       </div>
                     </div>
-                    <Button
-                      onClick={() => handleEditSchedule(session)}
-                      variant="secondary"
-                      className="h-9 w-9 flex items-center justify-center"
-                    >
-                      <Edit size={20} />
-                    </Button>
+                    <div className="flex gap-2">
+                      <Button
+                        onClick={() => handleEditSchedule(session)}
+                        variant="secondary"
+                        className="h-9 w-9 flex items-center justify-center"
+                        title={t('edit_button')}
+                      >
+                        <Edit size={20} />
+                      </Button>
+                      <Button
+                        onClick={() => handleDeleteSchedule(session.id)}
+                        variant="danger"
+                        className="h-9 w-9 flex items-center justify-center"
+                        title={t('delete_button')}
+                      >
+                        <Trash2 size={20} />
+                      </Button>
+                    </div>
                   </div>
                 ))}
               </div>

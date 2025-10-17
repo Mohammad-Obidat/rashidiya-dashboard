@@ -66,6 +66,12 @@ const resources = {
       dashboard_delete_confirm: 'Delete',
       dashboard_delete_cancel: 'Cancel',
       dashboard_deleting: 'Deleting...',
+      schedule_deleted_success: 'Schedule deleted successfully',
+      schedule_delete_failed: 'Failed to delete schedule',
+      attendance_updated_success: 'Attendance updated successfully',
+      attendance_update_failed: 'Failed to update attendance',
+      attendance_deleted_success: 'Attendance record deleted successfully',
+      attendance_delete_failed: 'Failed to delete attendance record',
 
       // SearchFilterBar keys
       search_filter_title: 'Search & Filter',
@@ -247,6 +253,44 @@ const resources = {
       grade_prefix: 'Grade',
       programs_report_xlsx: 'Programs Report.xlsx',
       programs_report_pdf: 'Programs Report.pdf',
+
+      // AssignAdvisorModal & AssignStudentModal
+      assign_advisor_to_program_title: 'Assign Advisor to Program',
+      assign_student_to_program_title: 'Assign Student to Program',
+      assign_button: 'Assign',
+      assigning: 'Assigning...',
+      select_program: 'Select Program',
+      select_program_option: 'Select a program',
+
+      // AttendanceFormModal
+      record_attendance_title: 'Record Attendance',
+      load_students_failed: 'Failed to load students',
+      attendance_validation_error:
+        'Please select a session and at least one record',
+      program_required: 'Program is required',
+      session_required: 'Session is required',
+      select_session_option: 'Select a session',
+      to: 'to',
+      attendance_late: 'Late',
+      notes_placeholder: 'Enter notes...',
+      students_list: 'Students List',
+
+      // --- ScheduleFormModal ---
+      add_schedule_title: 'Add Schedule',
+      edit_schedule_title: 'Edit Schedule',
+      schedule_validation_error: 'Please fill in all required fields.',
+      date_required: 'Date',
+      start_time_required: 'Start Time',
+      end_time_required: 'End Time',
+      location_required: 'Location',
+      location_placeholder: 'Enter location',
+      recurring_schedule: 'Recurring Schedule',
+      recurrence_pattern: 'Recurrence Pattern',
+      select_recurrence_option: 'Select a recurrence pattern',
+      daily: 'Daily',
+      weekly: 'Weekly',
+      monthly: 'Monthly',
+      notes: 'Notes',
     },
   },
   ar: {
@@ -312,6 +356,12 @@ const resources = {
       dashboard_delete_confirm: 'حذف',
       dashboard_delete_cancel: 'إلغاء',
       dashboard_deleting: 'جاري الحذف...',
+      schedule_deleted_success: 'تم حذف الجدول بنجاح',
+      schedule_delete_failed: 'فشل في حذف الجدول',
+      attendance_updated_success: 'تم تحديث الحضور بنجاح',
+      attendance_update_failed: 'فشل في تحديث الحضور',
+      attendance_deleted_success: 'تم حذف سجل الحضور بنجاح',
+      attendance_delete_failed: 'فشل في حذف سجل الحضور',
 
       // SearchFilterBar keys
       search_filter_title: 'البحث والتصفية',
@@ -492,6 +542,43 @@ const resources = {
       grade_prefix: 'الصف',
       programs_report_xlsx: 'تقرير_البرامج.xlsx',
       programs_report_pdf: 'تقرير_البرامج.pdf',
+
+      // AssignAdvisorModal & AssignStudentModal
+      assign_advisor_to_program_title: 'تعيين مرشد إلى البرنامج',
+      assign_student_to_program_title: 'تعيين طالب إلى البرنامج',
+      assign_button: 'تعيين',
+      assigning: 'جارٍ التعيين...',
+      select_program: 'اختر برنامجًا',
+      select_program_option: 'اختر برنامجًا',
+
+      // AttendanceFormModal
+      record_attendance_title: 'تسجيل الحضور',
+      load_students_failed: 'فشل في تحميل الطلاب',
+      attendance_validation_error: 'يرجى اختيار جلسة واحدة على الأقل وسجل واحد',
+      program_required: 'البرنامج مطلوب',
+      session_required: 'الجلسة مطلوبة',
+      select_session_option: 'اختر جلسة',
+      to: 'إلى',
+      attendance_late: 'متأخر',
+      notes_placeholder: 'أدخل ملاحظات...',
+      students_list: 'قائمة الطلاب',
+
+      // --- ScheduleFormModal ---
+      add_schedule_title: 'إضافة جدول',
+      edit_schedule_title: 'تعديل الجدول',
+      schedule_validation_error: 'يرجى تعبئة جميع الحقول المطلوبة.',
+      date_required: 'التاريخ',
+      start_time_required: 'وقت البدء',
+      end_time_required: 'وقت الانتهاء',
+      location_required: 'الموقع',
+      location_placeholder: 'أدخل الموقع',
+      recurring_schedule: 'جدول متكرر',
+      recurrence_pattern: 'نمط التكرار',
+      select_recurrence_option: 'اختر نمط التكرار',
+      daily: 'يومي',
+      weekly: 'أسبوعي',
+      monthly: 'شهري',
+      notes: 'ملاحظات',
     },
   },
   he: {
@@ -557,6 +644,12 @@ const resources = {
       dashboard_delete_confirm: 'מחק',
       dashboard_delete_cancel: 'בטל',
       dashboard_deleting: 'מוחק...',
+      schedule_deleted_success: 'לוח הזמנים נמחק בהצלחה',
+      schedule_delete_failed: 'נכשל במחיקת לוח הזמנים',
+      attendance_updated_success: 'הנוכחות עודכנה בהצלחה',
+      attendance_update_failed: 'נכשל בעדכון הנוכחות',
+      attendance_deleted_success: 'רשומת הנוכחות נמחקה בהצלחה',
+      attendance_delete_failed: 'נכשל במחיקת רשומת הנוכחות',
 
       // SearchFilterBar keys
       search_filter_title: 'חיפוש וסינון',
@@ -736,6 +829,43 @@ const resources = {
       grade_prefix: 'כיתה',
       programs_report_xlsx: 'Programs_Report.xlsx',
       programs_report_pdf: 'Programs_Report.pdf',
+
+      // AssignAdvisorModal & AssignStudentModal
+      assign_advisor_to_program_title: 'הקצה יועץ לתוכנית',
+      assign_student_to_program_title: 'הקצה תלמיד לתוכנית',
+      assign_button: 'הקצה',
+      assigning: 'מקצה...',
+      select_program: 'בחר תוכנית',
+      select_program_option: 'בחר תוכנית',
+
+      // AttendanceFormModal
+      record_attendance_title: 'תיעוד נוכחות',
+      load_students_failed: 'נכשל בטעינת סטודנטים',
+      attendance_validation_error: 'אנא בחר מפגש לפחות ורשומה אחת',
+      program_required: 'התוכנית נדרשת',
+      session_required: 'המפגש נדרש',
+      select_session_option: 'בחר מפגש',
+      to: 'עד',
+      attendance_late: 'מאחר',
+      notes_placeholder: 'הכנס הערות...',
+      students_list: 'רשימת סטודנטים',
+
+      // --- ScheduleFormModal ---
+      add_schedule_title: 'הוסף לוח זמנים',
+      edit_schedule_title: 'ערוך לוח זמנים',
+      schedule_validation_error: 'אנא מלא את כל השדות הנדרשים.',
+      date_required: 'תאריך',
+      start_time_required: 'שעת התחלה',
+      end_time_required: 'שעת סיום',
+      location_required: 'מיקום',
+      location_placeholder: 'הזן מיקום',
+      recurring_schedule: 'לוח זמנים חוזר',
+      recurrence_pattern: 'תבנית חזרה',
+      select_recurrence_option: 'בחר תבנית חזרה',
+      daily: 'יומי',
+      weekly: 'שבועי',
+      monthly: 'חודשי',
+      notes: 'הערות',
     },
   },
 };
