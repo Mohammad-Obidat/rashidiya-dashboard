@@ -25,3 +25,20 @@ dist-ssr
 
 #env
 .env
+
+# Node
+npm-debug.log
+yarn-error.log
+
+# Build
+build
+.vite
+.tsbuildinfo
+.parcel-cache
+.turbo
+
+# Prisma
+.prisma
+
+# OS
+Thumbs.db

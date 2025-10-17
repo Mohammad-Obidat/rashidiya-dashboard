@@ -56,3 +56,19 @@ pids
 report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
 
 /generated/prisma
+
+# Node
+npm-debug.log
+yarn-error.log
+
+# Build
+.vite
+.tsbuildinfo
+.parcel-cache
+.turbo
+
+# Prisma
+.prisma
+
+# OS
+Thumbs.db
