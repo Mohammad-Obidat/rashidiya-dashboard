@@ -25,6 +25,42 @@ const resources = {
       no_programs: 'No programs found',
       add_program: 'Add Program',
 
+      // Auth
+      auth_system_title: 'Extracurricular Program Management System',
+      auth_school_name: 'Al-Rashidiyah School',
+      auth_login_mode_question: "Don't have an account?",
+      auth_register_mode_question: 'Already have an account?',
+      auth_create_account_button: 'Create a new account',
+      auth_login_button: 'Login',
+      auth_processing_error: 'An error occurred during processing',
+      auth_footer_rights: 'Al-Rashidiyah School. All rights reserved.',
+      auth_footer_year_symbol: '©',
+
+      // Auth-login
+      login_title: 'Login',
+      login_subtitle: 'Enter your credentials to access the dashboard',
+      login_email_label: 'Email address',
+      login_email_placeholder: 'example@school.edu.sa',
+      login_password_label: 'Password',
+      login_password_placeholder: '••••••••',
+      login_remember_me: 'Remember me',
+      login_forgot_password: 'Forgot password?',
+      login_processing: 'Processing...',
+      login_submit: 'Login',
+
+      // Auth-register
+      register_title: 'Create a New Account',
+      register_subtitle: 'Enter your information to create a new account',
+      register_name_label: 'Name (optional)',
+      register_name_placeholder: 'Full name',
+      register_email_label: 'Email address',
+      register_email_placeholder: 'example@school.edu.sa',
+      register_password_label: 'Password',
+      register_password_placeholder: '••••••••',
+      register_password_hint: 'Password must be at least 6 characters long',
+      register_processing: 'Processing...',
+      register_submit: 'Create Account',
+
       // Dashboard Header
       dashboard_title: 'Dashboard - Extracurricular Programs',
       dashboard_subtitle:
@@ -45,6 +81,9 @@ const resources = {
       view_program_aria: 'View program',
       edit_program_aria: 'Edit program',
       delete_program_aria: 'Delete program',
+      delete_confirmation_title: 'Delete Confirmation',
+      delete_confirmation_message:
+        'Are you sure you want to delete this item? This action cannot be undone.',
 
       // Dashboard specific
       dashboard_total_programs: 'Total Programs',
@@ -315,6 +354,42 @@ const resources = {
       no_programs: 'لا توجد برامج',
       add_program: 'إضافة برنامج',
 
+      // Auth
+      auth_system_title: 'نظام إدارة البرامج اللامنهجية',
+      auth_school_name: 'مدرسة الرشيدية',
+      auth_login_mode_question: 'لا تملك حساباً؟',
+      auth_register_mode_question: 'لديك حساب بالفعل؟',
+      auth_create_account_button: 'إنشاء حساب جديد',
+      auth_login_button: 'تسجيل الدخول',
+      auth_processing_error: 'حدث خطأ أثناء المعالجة',
+      auth_footer_rights: 'مدرسة الرشيدية. جميع الحقوق محفوظة.',
+      auth_footer_year_symbol: '©',
+
+      // Auth-login
+      login_title: 'تسجيل الدخول',
+      login_subtitle: 'أدخل بياناتك للوصول إلى لوحة التحكم',
+      login_email_label: 'البريد الإلكتروني',
+      login_email_placeholder: 'example@school.edu.sa',
+      login_password_label: 'كلمة المرور',
+      login_password_placeholder: '••••••••',
+      login_remember_me: 'تذكرني',
+      login_forgot_password: 'نسيت كلمة المرور؟',
+      login_processing: 'جاري المعالجة...',
+      login_submit: 'تسجيل الدخول',
+
+      // Auth-register
+      register_title: 'إنشاء حساب جديد',
+      register_subtitle: 'أدخل بياناتك لإنشاء حساب جديد',
+      register_name_label: 'الاسم (اختياري)',
+      register_name_placeholder: 'الاسم الكامل',
+      register_email_label: 'البريد الإلكتروني',
+      register_email_placeholder: 'example@school.edu.sa',
+      register_password_label: 'كلمة المرور',
+      register_password_placeholder: '••••••••',
+      register_password_hint: 'يجب أن تكون كلمة المرور 6 أحرف على الأقل',
+      register_processing: 'جاري المعالجة...',
+      register_submit: 'إنشاء حساب',
+
       // Dashboard Header
       dashboard_title: 'لوحة التحكم - البرامج اللامنهجية',
       dashboard_subtitle:
@@ -335,6 +410,9 @@ const resources = {
       view_program_aria: 'عرض البرنامج',
       edit_program_aria: 'تعديل البرنامج',
       delete_program_aria: 'حذف البرنامج',
+      delete_confirmation_title: 'تأكيد الحذف',
+      delete_confirmation_message:
+        'هل أنت متأكد أنك تريد حذف هذا العنصر؟ لا يمكن التراجع عن هذا الإجراء.',
 
       // Dashboard specific
       dashboard_total_programs: 'إجمالي البرامج',
@@ -603,6 +681,42 @@ const resources = {
       no_programs: 'לא נמצאו תוכניות',
       add_program: 'הוסף תוכנית',
 
+      // Auth
+      auth_system_title: 'מערכת ניהול תוכניות חוץ-לימודיות',
+      auth_school_name: 'בית הספר אל-ראשידיה',
+      auth_login_mode_question: 'אין לך חשבון?',
+      auth_register_mode_question: 'כבר יש לך חשבון?',
+      auth_create_account_button: 'צור חשבון חדש',
+      auth_login_button: 'התחברות',
+      auth_processing_error: 'אירעה שגיאה במהלך העיבוד',
+      auth_footer_rights: 'בית הספר אל-ראשידיה. כל הזכויות שמורות.',
+      auth_footer_year_symbol: '©',
+
+      // Auth-login
+      login_title: 'התחברות',
+      login_subtitle: 'הזן את פרטיך כדי לגשת ללוח הבקרה',
+      login_email_label: 'דואר אלקטרוני',
+      login_email_placeholder: 'example@school.edu.sa',
+      login_password_label: 'סיסמה',
+      login_password_placeholder: '••••••••',
+      login_remember_me: 'זכור אותי',
+      login_forgot_password: 'שכחת סיסמה?',
+      login_processing: 'מעבד...',
+      login_submit: 'התחברות',
+
+      // Auth-register
+      register_title: 'צור חשבון חדש',
+      register_subtitle: 'הזן את פרטיך כדי ליצור חשבון חדש',
+      register_name_label: 'שם (אופציונלי)',
+      register_name_placeholder: 'שם מלא',
+      register_email_label: 'דואר אלקטרוני',
+      register_email_placeholder: 'example@school.edu.sa',
+      register_password_label: 'סיסמה',
+      register_password_placeholder: '••••••••',
+      register_password_hint: 'הסיסמה חייבת להכיל לפחות 6 תווים',
+      register_processing: 'מעבד...',
+      register_submit: 'צור חשבון',
+
       // Dashboard Header
       dashboard_title: 'לוח בקרה - תוכניות חוץ-לימודיות',
       dashboard_subtitle:
@@ -623,6 +737,9 @@ const resources = {
       view_program_aria: 'צפה בתוכנית',
       edit_program_aria: 'ערוך תוכנית',
       delete_program_aria: 'מחק תוכנית',
+      delete_confirmation_title: 'אישור מחיקה',
+      delete_confirmation_message:
+        'האם אתה בטוח שברצונך למחוק פריט זה? לא ניתן לבטל פעולה זו.',
 
       // Dashboard specific
       dashboard_total_programs: 'סך כל התוכניות',

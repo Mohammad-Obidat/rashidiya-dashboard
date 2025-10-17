@@ -1,14 +1,15 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-// import { School } from 'lucide-react'; // Removed unused import
 import { useAuth } from '../../hooks/useAuth';
 import LoginForm from './LoginForm';
 import RegisterForm from './RegisterForm';
 import schoolLogo from '../../assets/schoolLogo.png';
+import { useTranslation } from 'react-i18next';
 
 const Auth: React.FC = () => {
   const navigate = useNavigate();
   const { login, register } = useAuth();
+  const { t } = useTranslation();
   const [isLoginMode, setIsLoginMode] = useState(true);
   const [error, setError] = useState('');
 
@@ -31,58 +32,69 @@ const Auth: React.FC = () => {
       navigate('/programs');
     } catch (err: any) {
       const errorMessage =
-        err.response?.data?.message || err.message || 'حدث خطأ أثناء المعالجة';
+        err.response?.data?.message ||
+        err.message ||
+        t('auth_processing_error');
       setError(errorMessage);
     }
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 flex items-center justify-center p-4">
-      <div className="w-full max-w-md">
-        {/* Logo and Title Section */}
-        <div className="text-center mb-4">
-          <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-blue-600 to-purple-600 rounded-2xl shadow-lg mb-4 transform hover:scale-105 transition-transform duration-300">
-            <img src={schoolLogo} alt="schoolLogo" />
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50">
+      <div className="w-full max-w-md flex flex-col items-center justify-center p-6">
+        {/* Logo and Title */}
+        <div className="text-center mb-6">
+          <div className="inline-flex items-center justify-center w-24 h-24 bg-gradient-to-br from-blue-600 to-purple-600 rounded-2xl shadow-lg mb-4 transform hover:scale-105 transition-transform duration-300">
+            <img
+              src={schoolLogo}
+              alt="schoolLogo"
+              className="w-14 h-14 object-contain"
+            />
           </div>
           <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-2 py-2">
-            نظام إدارة البرامج اللامنهجية
+            {t('auth_system_title')}
           </h1>
-          <div className="flex items-center justify-center gap-2">
-            {/* <School className='w-10 h-10 text-black' /> */}
-            <p className="text-gray-600">مدرسة الرشيدية</p>
-          </div>
+          <p className="text-gray-600">{t('auth_school_name')}</p>
         </div>
 
         {/* Conditional Form */}
-        {isLoginMode ? (
-          <LoginForm onSubmit={handleAuth} error={error} />
-        ) : (
-          <RegisterForm onSubmit={handleAuth} error={error} />
-        )}
+        <div className="w-full">
+          {isLoginMode ? (
+            <LoginForm onSubmit={handleAuth} error={error} />
+          ) : (
+            <RegisterForm onSubmit={handleAuth} error={error} />
+          )}
+        </div>
 
         {/* Switch Mode */}
-        <div className="mt-6 pt-6 border-t border-gray-200">
-          <p className="text-center text-sm text-gray-600">
-            {isLoginMode ? 'لا تملك حساباً؟ ' : 'لديك حساب بالفعل؟ '}
+        <div className="mt-6 pt-4 border-t border-gray-200 text-center">
+          <p className="text-sm text-gray-600">
+            {isLoginMode
+              ? t('auth_login_mode_question')
+              : t('auth_register_mode_question')}{' '}
             <button
               onClick={() => {
                 setIsLoginMode(!isLoginMode);
                 setError('');
               }}
-              className="text-blue-600 hover:text-blue-700 font-medium cursor-pointer"
+              className="text-blue-600 hover:text-blue-700 font-medium"
             >
-              {isLoginMode ? 'إنشاء حساب جديد' : 'تسجيل الدخول'}
+              {isLoginMode
+                ? t('auth_create_account_button')
+                : t('auth_login_button')}
             </button>
           </p>
         </div>
 
         {/* Footer */}
-        <div className="mt-8 text-center text-sm text-gray-600">
-          <p className="flex items-center justify-center gap-2">
-            مدرسة الرشيدية. جميع الحقوق محفوظة.
-            <span>{new Date().getFullYear()} ©</span>
+        <footer className="mt-8 text-center text-sm text-gray-600">
+          <p className="flex items-center justify-center gap-1">
+            {t('auth_footer_rights')}
+            <span>{`${new Date().getFullYear()} ${t(
+              'auth_footer_year_symbol'
+            )}`}</span>
           </p>
-        </div>
+        </footer>
       </div>
     </div>
   );
