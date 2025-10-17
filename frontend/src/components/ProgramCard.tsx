@@ -34,14 +34,18 @@ const ProgramCard: React.FC<ProgramCardProps> = ({
             {program.name}
           </h3>
           <Badge
-            label={status.label}
+            label={t(`status.${program.status}`)}
             colorClass={status.badge}
             dotClass={status.dot}
           />
         </div>
 
         <div className="flex items-center gap-2">
-          <Badge label={type.label} colorClass={type.color} icon={type.icon} />
+          <Badge
+            label={t(`type.${program.type}`)}
+            colorClass={type.color}
+            icon={type.icon}
+          />
         </div>
       </div>
 
