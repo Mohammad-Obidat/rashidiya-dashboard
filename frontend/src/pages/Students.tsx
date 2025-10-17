@@ -20,9 +20,10 @@ import { exportToXLSX, exportToPDF } from '../lib/exportUtils';
 import LoadingState from '../components/LoadingState';
 import ErrorState from '../components/ErrorState';
 import { useToast } from '../contexts/ToastContext';
+import { sectionOptions, getAllGenders } from '../config/programConfig';
 
 const Students: React.FC = () => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const toast = useToast();
   const [students, setStudents] = useState<Student[]>([]);
@@ -36,6 +37,21 @@ const Students: React.FC = () => {
   const [assignModalOpen, setAssignModalOpen] = useState(false);
   const [selectedStudent, setSelectedStudent] = useState<string | null>(null);
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
+
+  const isRTL = i18n.language === 'ar' || i18n.language === 'he';
+
+  // Dynamically get translated options based on current language
+  const getTranslatedSectionOptions = () =>
+    sectionOptions.map((opt) => ({
+      value: opt.value,
+      label: t(`section.${opt.value}`),
+    }));
+
+  const getTranslatedGenderOptions = () =>
+    getAllGenders().map((opt) => ({
+      value: opt.value,
+      label: t(`gender.${opt.value}`),
+    }));
 
   useEffect(() => {
     const fetchData = async () => {
@@ -115,7 +131,11 @@ const Students: React.FC = () => {
 
   const handleExportXLSX = async () => {
     try {
-      await exportToXLSX('STUDENTS', {}, 'قائمة_الطلاب.xlsx');
+      const fileName = t('export_attendance_xlsx').replace(
+        'Attendance',
+        'Students'
+      );
+      await exportToXLSX('STUDENTS', {}, fileName);
       toast.success(t('export_success'));
     } catch (err: any) {
       toast.error(t('export_failed'));
@@ -124,7 +144,11 @@ const Students: React.FC = () => {
 
   const handleExportPDF = async () => {
     try {
-      await exportToPDF('STUDENTS', {}, 'قائمة_الطلاب.pdf');
+      const fileName = t('export_attendance_pdf').replace(
+        'Attendance',
+        'Students'
+      );
+      await exportToPDF('STUDENTS', {}, fileName);
       toast.success(t('export_success'));
     } catch (err: any) {
       toast.error(t('export_failed'));
@@ -135,13 +159,50 @@ const Students: React.FC = () => {
     setOpenMenuId(openMenuId === id ? null : id);
   };
 
+  const getGenderLabel = (gender: string | null) => {
+    const genderMap: { [key: string]: string } = {
+      MALE: 'MALE',
+      FEMALE: 'FEMALE',
+    };
+    const key = genderMap[gender || ''] || gender;
+    return key ? t(`gender.${key}`) : '';
+  };
+
+  const getSectionLabel = (section: string) => {
+    const sectionMap: { [key: string]: string } = {
+      A: 'A',
+      أ: 'A',
+      B: 'B',
+      ب: 'B',
+      C: 'C',
+      ج: 'C',
+      D: 'D',
+      د: 'D',
+      E: 'E',
+      ه: 'E',
+      F: 'F',
+      و: 'F',
+      G: 'G',
+      ز: 'G',
+    };
+    const englishSection = sectionMap[section] || section;
+    return t(`section.${englishSection}`);
+  };
+
+  const formatBirthDate = (date: string | null) => {
+    if (!date) return '';
+    return new Date(date).toISOString().split('T')[0];
+  };
+
   if (loading) return <LoadingState />;
   if (error) return <ErrorState error={error} />;
 
   return (
     <div className="p-4 sm:p-6 bg-gray-50 min-h-screen">
       {/* Header Section */}
-      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 sm:gap-4 mb-4 sm:mb-6">
+      <div
+        className={`flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 sm:gap-4 mb-4 sm:mb-6`}
+      >
         <h2 className="text-2xl sm:text-3xl font-bold text-gray-800">
           {t('students_list_title')}
         </h2>
@@ -156,20 +217,28 @@ const Students: React.FC = () => {
       </div>
 
       {/* Search and Export Section */}
-      <div className="bg-white p-3 sm:p-4 rounded-lg shadow-sm mb-4 sm:mb-6 space-y-3 sm:space-y-0 sm:flex sm:justify-between sm:items-center">
-        <div className="relative w-full sm:max-w-md">
+      <div
+        className={`bg-white p-3 sm:p-4 rounded-lg shadow-sm mb-4 sm:mb-6 space-y-3 sm:space-y-0 sm:flex sm:justify-between sm:items-center`}
+      >
+        <div
+          className={`relative w-full sm:max-w-md ${isRTL ? 'sm:ml-auto' : ''}`}
+        >
           <Input
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             placeholder={t('search_students_placeholder')}
-            className="pl-10 text-sm sm:text-base"
+            className={`pl-10 text-sm sm:text-base ${
+              isRTL ? 'pr-10 pl-3' : ''
+            }`}
           />
           <Search
             size={18}
-            className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 sm:w-5 sm:h-5"
+            className={`absolute top-1/2 -translate-y-1/2 text-gray-400 sm:w-5 sm:h-5 ${
+              isRTL ? 'right-3' : 'left-3'
+            }`}
           />
         </div>
-        <div className="flex gap-2">
+        <div className={`flex gap-2`}>
           <Button
             onClick={handleExportXLSX}
             variant="secondary"
@@ -191,14 +260,22 @@ const Students: React.FC = () => {
 
       {/* Desktop Table View */}
       <div className="hidden lg:block bg-white rounded-lg shadow overflow-x-auto">
-        <table className="w-full text-right">
+        <table className="w-full text-center">
           <thead className="bg-gray-100 text-gray-600 uppercase text-sm">
             <tr>
-              <th className="p-3 lg:p-4">{t('student_full_name')}</th>
-              <th className="p-3 lg:p-4">{t('student_academic_number')}</th>
-              <th className="p-3 lg:p-4">{t('student_grade_section_short')}</th>
-              <th className="p-3 lg:p-4">{t('student_gender')}</th>
-              <th className="p-3 lg:p-4">{t('student_birth_date')}</th>
+              <th className="p-3 lg:p-4 text-center">
+                {t('student_full_name')}
+              </th>
+              <th className="p-3 lg:p-4 text-center">
+                {t('student_academic_number')}
+              </th>
+              <th className="p-3 lg:p-4 text-center">
+                {t('student_grade_section_short')}
+              </th>
+              <th className="p-3 lg:p-4 text-center">{t('student_gender')}</th>
+              <th className="p-3 lg:p-4 text-center">
+                {t('student_birth_date')}
+              </th>
               <th className="p-3 lg:p-4 text-center">{t('actions')}</th>
             </tr>
           </thead>
@@ -208,20 +285,20 @@ const Students: React.FC = () => {
                 key={student.id}
                 className="border-b border-gray-200 hover:bg-gray-50"
               >
-                <td className="p-3 lg:p-4 font-medium">{student.name}</td>
-                <td className="p-3 lg:p-4">{student.studentNumber}</td>
-                <td className="p-3 lg:p-4">
-                  {student.grade} / {student.section}
+                <td className="p-3 lg:p-4 font-medium text-center">
+                  {student.name}
                 </td>
-                <td className="p-3 lg:p-4">
-                  {student.gender === 'MALE'
-                    ? t('gender_male')
-                    : t('gender_female')}
+                <td className="p-3 lg:p-4 text-center">
+                  {student.studentNumber}
                 </td>
-                <td className="p-3 lg:p-4">
-                  {student.birthDate
-                    ? new Date(student.birthDate).toISOString().split('T')[0]
-                    : ''}
+                <td className="p-3 lg:p-4 text-center">
+                  {student.grade} / {getSectionLabel(student.section)}
+                </td>
+                <td className="p-3 lg:p-4 text-center">
+                  {getGenderLabel(student.gender)}
+                </td>
+                <td className="p-3 lg:p-4 text-center">
+                  {formatBirthDate(student.birthDate)}
                 </td>
                 <td className="p-3 lg:p-4">
                   <div className="flex justify-center gap-2">
@@ -268,6 +345,7 @@ const Students: React.FC = () => {
           <div
             key={student.id}
             className="bg-white rounded-lg shadow-sm p-4 space-y-3"
+            // dir={isRTL ? 'rtl' : 'ltr'}
           >
             <div className="flex items-start justify-between">
               <div className="flex-1 min-w-0">
@@ -285,20 +363,18 @@ const Students: React.FC = () => {
                     <span className="font-medium">
                       {t('student_grade_section_short')}:
                     </span>{' '}
-                    {student.grade} / {student.section}
+                    {student.grade} / {t(`section.${student.section}`)}
                   </p>
                   <p className="text-sm text-gray-600">
                     <span className="font-medium">{t('student_gender')}:</span>{' '}
-                    {student.gender === 'MALE'
-                      ? t('gender_male')
-                      : t('gender_female')}
+                    {getGenderLabel(student.gender)}
                   </p>
                   {student.birthDate && (
                     <p className="text-sm text-gray-600">
                       <span className="font-medium">
                         {t('student_birth_date')}:
                       </span>{' '}
-                      {new Date(student.birthDate).toISOString().split('T')[0]}
+                      {formatBirthDate(student.birthDate)}
                     </p>
                   )}
                 </div>
@@ -306,7 +382,7 @@ const Students: React.FC = () => {
               <div className="relative">
                 <button
                   onClick={() => toggleMenu(student.id)}
-                  className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                  className="p-2 hover:bg-gray-100 rounded-lg transition-colors flex-shrink-0"
                 >
                   <MoreVertical size={20} className="text-gray-600" />
                 </button>
