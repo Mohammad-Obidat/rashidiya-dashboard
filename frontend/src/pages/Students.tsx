@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { api } from '../lib/apiClient';
 import type { Student, Program } from '../types/program';
@@ -21,6 +22,7 @@ import ErrorState from '../components/ErrorState';
 import { useToast } from '../contexts/ToastContext';
 
 const Students: React.FC = () => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const toast = useToast();
   const [students, setStudents] = useState<Student[]>([]);
@@ -47,13 +49,13 @@ const Students: React.FC = () => {
         setStudents(studentsData);
         setPrograms(programsData);
       } catch (err: any) {
-        setError(err.message || 'فشل في تحميل الطلاب');
+        setError(err.message || t('dashboard_error'));
       } finally {
         setLoading(false);
       }
     };
     fetchData();
-  }, []);
+  }, [t]);
 
   const filteredStudents = useMemo(
     () =>
@@ -79,9 +81,9 @@ const Students: React.FC = () => {
       setStudents(students.filter((s) => s.id !== studentToDelete));
       setDeleteModalOpen(false);
       setStudentToDelete(null);
-      toast.success('تم حذف الطالب بنجاح');
+      toast.success(t('student_deleted_success'));
     } catch (err: any) {
-      toast.error('فشل في حذف الطالب');
+      toast.error(t('student_delete_failed'));
     } finally {
       setIsDeleting(false);
     }
@@ -103,10 +105,10 @@ const Students: React.FC = () => {
         joinDate: new Date().toISOString(),
       });
 
-      toast.success('تم تعيين الطالب للبرنامج بنجاح');
+      toast.success(t('student_assigned_success'));
       setSelectedStudent(null);
     } catch (err: any) {
-      toast.error('فشل في تعيين الطالب للبرنامج');
+      toast.error(t('student_assign_failed'));
       throw err;
     }
   };
@@ -114,18 +116,18 @@ const Students: React.FC = () => {
   const handleExportXLSX = async () => {
     try {
       await exportToXLSX('STUDENTS', {}, 'قائمة_الطلاب.xlsx');
-      toast.success('تم تصدير الملف بنجاح');
+      toast.success(t('export_success'));
     } catch (err: any) {
-      toast.error('فشل في تصدير الملف');
+      toast.error(t('export_failed'));
     }
   };
 
   const handleExportPDF = async () => {
     try {
       await exportToPDF('STUDENTS', {}, 'قائمة_الطلاب.pdf');
-      toast.success('تم تصدير الملف بنجاح');
+      toast.success(t('export_success'));
     } catch (err: any) {
-      toast.error('فشل في تصدير الملف');
+      toast.error(t('export_failed'));
     }
   };
 
@@ -137,109 +139,113 @@ const Students: React.FC = () => {
   if (error) return <ErrorState error={error} />;
 
   return (
-    <div className='p-4 sm:p-6 bg-gray-50 min-h-screen'>
+    <div className="p-4 sm:p-6 bg-gray-50 min-h-screen">
       {/* Header Section */}
-      <div className='flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 sm:gap-4 mb-4 sm:mb-6'>
-        <h2 className='text-2xl sm:text-3xl font-bold text-gray-800'>قائمة الطلاب</h2>
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 sm:gap-4 mb-4 sm:mb-6">
+        <h2 className="text-2xl sm:text-3xl font-bold text-gray-800">
+          {t('students_list_title')}
+        </h2>
         <Button
           onClick={() => navigate('/students/new')}
-          variant='primary'
-          className='flex items-center justify-center gap-2 w-full sm:w-auto'
+          variant="primary"
+          className="flex items-center justify-center gap-2 w-full sm:w-auto"
         >
-          <PlusCircle size={18} className='sm:w-5 sm:h-5' />
-          <span className='text-sm sm:text-base'>إضافة طالب جديد</span>
+          <PlusCircle size={18} className="sm:w-5 sm:h-5" />
+          <span className="text-sm sm:text-base">{t('add_new_student')}</span>
         </Button>
       </div>
 
       {/* Search and Export Section */}
-      <div className='bg-white p-3 sm:p-4 rounded-lg shadow-sm mb-4 sm:mb-6 space-y-3 sm:space-y-0 sm:flex sm:justify-between sm:items-center'>
-        <div className='relative w-full sm:max-w-md'>
+      <div className="bg-white p-3 sm:p-4 rounded-lg shadow-sm mb-4 sm:mb-6 space-y-3 sm:space-y-0 sm:flex sm:justify-between sm:items-center">
+        <div className="relative w-full sm:max-w-md">
           <Input
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            placeholder='ابحث بالاسم أو الرقم الأكاديمي...'
-            className='pl-10 text-sm sm:text-base'
+            placeholder={t('search_students_placeholder')}
+            className="pl-10 text-sm sm:text-base"
           />
           <Search
             size={18}
-            className='absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 sm:w-5 sm:h-5'
+            className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 sm:w-5 sm:h-5"
           />
         </div>
-        <div className='flex gap-2'>
+        <div className="flex gap-2">
           <Button
             onClick={handleExportXLSX}
-            variant='secondary'
-            className='flex items-center justify-center gap-1 sm:gap-2 flex-1 sm:flex-initial text-xs sm:text-sm'
+            variant="secondary"
+            className="flex items-center justify-center gap-1 sm:gap-2 flex-1 sm:flex-initial text-xs sm:text-sm"
           >
-            <FileDown size={16} className='sm:w-[18px] sm:h-[18px]' />
-            <span className='hidden xs:inline'>تصدير</span> XLSX
+            <FileDown size={16} className="sm:w-[18px] sm:h-[18px]" />
+            <span className="hidden xs:inline">{t('export_xlsx')}</span> XLSX
           </Button>
           <Button
             onClick={handleExportPDF}
-            variant='secondary'
-            className='flex items-center justify-center gap-1 sm:gap-2 flex-1 sm:flex-initial text-xs sm:text-sm'
+            variant="secondary"
+            className="flex items-center justify-center gap-1 sm:gap-2 flex-1 sm:flex-initial text-xs sm:text-sm"
           >
-            <FileDown size={16} className='sm:w-[18px] sm:h-[18px]' />
-            <span className='hidden xs:inline'>تصدير</span> PDF
+            <FileDown size={16} className="sm:w-[18px] sm:h-[18px]" />
+            <span className="hidden xs:inline">{t('export_pdf')}</span> PDF
           </Button>
         </div>
       </div>
 
       {/* Desktop Table View */}
-      <div className='hidden lg:block bg-white rounded-lg shadow overflow-x-auto'>
-        <table className='w-full text-right'>
-          <thead className='bg-gray-100 text-gray-600 uppercase text-sm'>
+      <div className="hidden lg:block bg-white rounded-lg shadow overflow-x-auto">
+        <table className="w-full text-right">
+          <thead className="bg-gray-100 text-gray-600 uppercase text-sm">
             <tr>
-              <th className='p-3 lg:p-4'>الاسم</th>
-              <th className='p-3 lg:p-4'>الرقم الأكاديمي</th>
-              <th className='p-3 lg:p-4'>الصف/الشعبة</th>
-              <th className='p-3 lg:p-4'>الجنس</th>
-              <th className='p-3 lg:p-4'>تاريخ الميلاد</th>
-              <th className='p-3 lg:p-4 text-center'>إجراءات</th>
+              <th className="p-3 lg:p-4">{t('student_full_name')}</th>
+              <th className="p-3 lg:p-4">{t('student_academic_number')}</th>
+              <th className="p-3 lg:p-4">{t('student_grade_section_short')}</th>
+              <th className="p-3 lg:p-4">{t('student_gender')}</th>
+              <th className="p-3 lg:p-4">{t('student_birth_date')}</th>
+              <th className="p-3 lg:p-4 text-center">{t('actions')}</th>
             </tr>
           </thead>
-          <tbody className='text-gray-700'>
+          <tbody className="text-gray-700">
             {filteredStudents.map((student) => (
               <tr
                 key={student.id}
-                className='border-b border-gray-200 hover:bg-gray-50'
+                className="border-b border-gray-200 hover:bg-gray-50"
               >
-                <td className='p-3 lg:p-4 font-medium'>{student.name}</td>
-                <td className='p-3 lg:p-4'>{student.studentNumber}</td>
-                <td className='p-3 lg:p-4'>
+                <td className="p-3 lg:p-4 font-medium">{student.name}</td>
+                <td className="p-3 lg:p-4">{student.studentNumber}</td>
+                <td className="p-3 lg:p-4">
                   {student.grade} / {student.section}
                 </td>
-                <td className='p-3 lg:p-4'>
-                  {student.gender === 'MALE' ? 'ذكر' : 'أنثى'}
+                <td className="p-3 lg:p-4">
+                  {student.gender === 'MALE'
+                    ? t('gender_male')
+                    : t('gender_female')}
                 </td>
-                <td className='p-3 lg:p-4'>
+                <td className="p-3 lg:p-4">
                   {student.birthDate
                     ? new Date(student.birthDate).toISOString().split('T')[0]
                     : ''}
                 </td>
-                <td className='p-3 lg:p-4'>
-                  <div className='flex justify-center gap-2'>
+                <td className="p-3 lg:p-4">
+                  <div className="flex justify-center gap-2">
                     <Button
                       onClick={() => handleAssignClick(student.id)}
-                      variant='primary'
-                      className='h-8 w-8 p-0 flex items-center justify-center'
-                      title='تعيين إلى برنامج'
+                      variant="primary"
+                      className="h-8 w-8 p-0 flex items-center justify-center"
+                      title={t('assign_to_program_action')}
                     >
                       <UserPlus size={16} />
                     </Button>
                     <Button
                       onClick={() => navigate(`/students/edit/${student.id}`)}
-                      variant='secondary'
-                      className='h-8 w-8 p-0 flex items-center justify-center'
-                      title='تعديل'
+                      variant="secondary"
+                      className="h-8 w-8 p-0 flex items-center justify-center"
+                      title={t('edit_button')}
                     >
                       <Edit size={16} />
                     </Button>
                     <Button
                       onClick={() => handleDeleteClick(student.id)}
-                      variant='danger'
-                      className='h-8 w-8 p-0 flex items-center justify-center'
-                      title='حذف'
+                      variant="danger"
+                      className="h-8 w-8 p-0 flex items-center justify-center"
+                      title={t('delete_button')}
                     >
                       <Trash2 size={16} />
                     </Button>
@@ -250,82 +256,90 @@ const Students: React.FC = () => {
           </tbody>
         </table>
         {filteredStudents.length === 0 && (
-          <div className='text-center p-8 text-gray-500'>
-            لا يوجد طلاب لعرضهم.
+          <div className="text-center p-8 text-gray-500">
+            {t('no_students_found')}
           </div>
         )}
       </div>
 
       {/* Mobile/Tablet Card View */}
-      <div className='lg:hidden space-y-3'>
+      <div className="lg:hidden space-y-3">
         {filteredStudents.map((student) => (
           <div
             key={student.id}
-            className='bg-white rounded-lg shadow-sm p-4 space-y-3'
+            className="bg-white rounded-lg shadow-sm p-4 space-y-3"
           >
-            <div className='flex items-start justify-between'>
-              <div className='flex-1 min-w-0'>
-                <h3 className='font-semibold text-base text-gray-800'>
+            <div className="flex items-start justify-between">
+              <div className="flex-1 min-w-0">
+                <h3 className="font-semibold text-base text-gray-800">
                   {student.name}
                 </h3>
-                <div className='mt-2 space-y-1.5'>
-                  <p className='text-sm text-gray-600'>
-                    <span className='font-medium'>الرقم الأكاديمي:</span>{' '}
+                <div className="mt-2 space-y-1.5">
+                  <p className="text-sm text-gray-600">
+                    <span className="font-medium">
+                      {t('student_academic_number')}:
+                    </span>{' '}
                     {student.studentNumber}
                   </p>
-                  <p className='text-sm text-gray-600'>
-                    <span className='font-medium'>الصف/الشعبة:</span>{' '}
+                  <p className="text-sm text-gray-600">
+                    <span className="font-medium">
+                      {t('student_grade_section_short')}:
+                    </span>{' '}
                     {student.grade} / {student.section}
                   </p>
-                  <p className='text-sm text-gray-600'>
-                    <span className='font-medium'>الجنس:</span>{' '}
-                    {student.gender === 'MALE' ? 'ذكر' : 'أنثى'}
+                  <p className="text-sm text-gray-600">
+                    <span className="font-medium">{t('student_gender')}:</span>{' '}
+                    {student.gender === 'MALE'
+                      ? t('gender_male')
+                      : t('gender_female')}
                   </p>
                   {student.birthDate && (
-                    <p className='text-sm text-gray-600'>
-                      <span className='font-medium'>تاريخ الميلاد:</span>{' '}
+                    <p className="text-sm text-gray-600">
+                      <span className="font-medium">
+                        {t('student_birth_date')}:
+                      </span>{' '}
                       {new Date(student.birthDate).toISOString().split('T')[0]}
                     </p>
                   )}
                 </div>
               </div>
-              <div className='relative'>
+              <div className="relative">
                 <button
                   onClick={() => toggleMenu(student.id)}
-                  className='p-2 hover:bg-gray-100 rounded-lg transition-colors'
+                  className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
                 >
-                  <MoreVertical size={20} className='text-gray-600' />
+                  <MoreVertical size={20} className="text-gray-600" />
                 </button>
                 {openMenuId === student.id && (
                   <>
                     <div
-                      className='fixed inset-0 z-10'
+                      className="fixed inset-0 z-10"
                       onClick={() => setOpenMenuId(null)}
                     />
-                    <div className='absolute left-0 mt-1 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-20'>
+                    <div className="absolute left-0 mt-1 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-20">
                       <button
                         onClick={() => handleAssignClick(student.id)}
-                        className='w-full text-right px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2'
+                        className="w-full text-right px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"
                       >
                         <UserPlus size={16} />
-                        تعيين إلى برنامج
+                        {t('assign_to_program_action')}
                       </button>
                       <button
                         onClick={() => {
                           navigate(`/students/edit/${student.id}`);
                           setOpenMenuId(null);
                         }}
-                        className='w-full text-right px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2'
+                        className="w-full text-right px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"
                       >
                         <Edit size={16} />
-                        تعديل
+                        {t('edit_button')}
                       </button>
                       <button
                         onClick={() => handleDeleteClick(student.id)}
-                        className='w-full text-right px-4 py-2 text-sm text-red-600 hover:bg-red-50 flex items-center gap-2'
+                        className="w-full text-right px-4 py-2 text-sm text-red-600 hover:bg-red-50 flex items-center gap-2"
                       >
                         <Trash2 size={16} />
-                        حذف
+                        {t('delete_button')}
                       </button>
                     </div>
                   </>
@@ -335,8 +349,8 @@ const Students: React.FC = () => {
           </div>
         ))}
         {filteredStudents.length === 0 && (
-          <div className='bg-white rounded-lg shadow-sm p-8 text-center text-gray-500'>
-            لا يوجد طلاب لعرضهم.
+          <div className="bg-white rounded-lg shadow-sm p-8 text-center text-gray-500">
+            {t('no_students_found')}
           </div>
         )}
       </div>
@@ -345,31 +359,29 @@ const Students: React.FC = () => {
       <Modal
         isOpen={deleteModalOpen}
         onClose={() => setDeleteModalOpen(false)}
-        title='تأكيد الحذف'
+        title={t('delete_student_title')}
         footer={
           <>
             <Button
-              variant='secondary'
+              variant="secondary"
               onClick={() => setDeleteModalOpen(false)}
               disabled={isDeleting}
-              className='text-sm sm:text-base'
+              className="text-sm sm:text-base"
             >
-              إلغاء
+              {t('form_cancel')}
             </Button>
             <Button
-              variant='danger'
+              variant="danger"
               onClick={handleDeleteConfirm}
               disabled={isDeleting}
-              className='text-sm sm:text-base'
+              className="text-sm sm:text-base"
             >
-              {isDeleting ? 'جاري الحذف...' : 'حذف'}
+              {isDeleting ? t('deleting') : t('delete_button')}
             </Button>
           </>
         }
       >
-        <p className='text-sm sm:text-base'>
-          هل أنت متأكد من حذف هذا الطالب؟ لا يمكن التراجع عن هذا الإجراء.
-        </p>
+        <p className="text-sm sm:text-base">{t('delete_student_message')}</p>
       </Modal>
 
       {/* Assign Student Modal */}

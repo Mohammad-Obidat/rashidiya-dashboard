@@ -28,9 +28,9 @@ const Input: React.FC<InputProps> = ({
   return (
     <div className={`mb-4 ${className}`}>
       {label && (
-        <label className='block text-sm font-semibold text-gray-700 mb-1'>
+        <label className="block text-sm font-semibold text-gray-700 mb-1">
           {label}
-          {required && <span className='text-red-500 mr-1'>*</span>}
+          {required && <span className="text-red-500 mr-1">*</span>}
         </label>
       )}
       <input
@@ -48,8 +48,8 @@ const Input: React.FC<InputProps> = ({
         } ${disabled ? 'bg-gray-100 cursor-not-allowed opacity-60' : ''}`}
       />
       {error && (
-        <p className='mt-2 text-sm text-red-600 flex items-center gap-1'>
-          <span className='inline-block w-1 h-1 bg-red-600 rounded-full'></span>
+        <p className="mt-2 text-sm text-red-600 flex items-center gap-1">
+          <span className="inline-block w-1 h-1 bg-red-600 rounded-full"></span>
           {error}
         </p>
       )}

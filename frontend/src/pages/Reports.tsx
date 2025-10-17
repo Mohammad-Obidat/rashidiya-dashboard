@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { api } from '../lib/apiClient';
 import type { Program, Student, AttendanceRecord } from '../types/program';
 import Button from '../components/common/Button';
@@ -13,8 +14,11 @@ import {
 import { exportToXLSX, exportToPDF } from '../lib/exportUtils';
 import LoadingState from '../components/LoadingState';
 import ErrorState from '../components/ErrorState';
+import { useToast } from '../contexts/ToastContext';
 
 const Reports: React.FC = () => {
+  const { t } = useTranslation();
+  const toast = useToast();
   const [programs, setPrograms] = useState<Program[]>([]);
   const [students, setStudents] = useState<Student[]>([]);
   const [attendance, setAttendance] = useState<AttendanceRecord[]>([]);
@@ -35,13 +39,13 @@ const Reports: React.FC = () => {
         setStudents(studData);
         setAttendance(attData);
       } catch (err: any) {
-        setError(err.message || 'فشل في تحميل بيانات التقارير');
+        setError(err.message || t('dashboard_error'));
       } finally {
         setLoading(false);
       }
     };
     fetchData();
-  }, []);
+  }, [t]);
 
   const totalPrograms = programs.length;
   const totalStudents = students.length;
@@ -65,17 +69,21 @@ const Reports: React.FC = () => {
 
   const handleGeneralReportExport = async () => {
     try {
-      await exportToXLSX('PROGRAMS', {}, 'تقرير_البرامج.xlsx');
+      await exportToXLSX('PROGRAMS', {}, t('programs_report_xlsx'));
+      toast.success(t('export_success'));
     } catch (err: any) {
-      setError(err.message || 'فشل في تصدير الملف');
+      toast.error(t('export_failed'));
+      setError(err.message || t('export_failed'));
     }
   };
 
   const handleGeneralReportPDFExport = async () => {
     try {
-      await exportToPDF('PROGRAMS', {}, 'تقرير_البرامج.pdf');
+      await exportToPDF('PROGRAMS', {}, t('programs_report_pdf'));
+      toast.success(t('export_success'));
     } catch (err: any) {
-      setError(err.message || 'فشل في تصدير الملف');
+      toast.error(t('export_failed'));
+      setError(err.message || t('export_failed'));
     }
   };
 
@@ -87,7 +95,7 @@ const Reports: React.FC = () => {
       {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
         <h2 className="text-2xl sm:text-3xl font-bold text-gray-800">
-          التقارير والإحصائيات
+          {t('reports_title')}
         </h2>
         <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
           <Button
@@ -96,7 +104,7 @@ const Reports: React.FC = () => {
             className="flex items-center justify-center gap-2 w-full sm:w-auto"
           >
             <FileDown size={18} />
-            تصدير XLSX
+            {t('export_report_xlsx')}
           </Button>
           <Button
             onClick={handleGeneralReportPDFExport}
@@ -104,7 +112,7 @@ const Reports: React.FC = () => {
             className="flex items-center justify-center gap-2 w-full sm:w-auto"
           >
             <FileDown size={18} />
-            تصدير PDF
+            {t('export_report_pdf')}
           </Button>
         </div>
       </div>
@@ -116,8 +124,12 @@ const Reports: React.FC = () => {
             <Activity size={24} className="text-blue-600" />
           </div>
           <div>
-            <div className="text-gray-500 text-sm sm:text-base">إجمالي البرامج</div>
-            <div className="text-2xl sm:text-3xl font-bold">{totalPrograms}</div>
+            <div className="text-gray-500 text-sm sm:text-base">
+              {t('total_programs_label')}
+            </div>
+            <div className="text-2xl sm:text-3xl font-bold">
+              {totalPrograms}
+            </div>
           </div>
         </div>
 
@@ -126,8 +138,12 @@ const Reports: React.FC = () => {
             <Users size={24} className="text-green-600" />
           </div>
           <div>
-            <div className="text-gray-500 text-sm sm:text-base">إجمالي الطلاب</div>
-            <div className="text-2xl sm:text-3xl font-bold">{totalStudents}</div>
+            <div className="text-gray-500 text-sm sm:text-base">
+              {t('total_students_label')}
+            </div>
+            <div className="text-2xl sm:text-3xl font-bold">
+              {totalStudents}
+            </div>
           </div>
         </div>
 
@@ -136,8 +152,12 @@ const Reports: React.FC = () => {
             <ClipboardCheck size={24} className="text-purple-600" />
           </div>
           <div>
-            <div className="text-gray-500 text-sm sm:text-base">إجمالي الحضور</div>
-            <div className="text-2xl sm:text-3xl font-bold">{totalAttendance}</div>
+            <div className="text-gray-500 text-sm sm:text-base">
+              {t('total_attendance_label')}
+            </div>
+            <div className="text-2xl sm:text-3xl font-bold">
+              {totalAttendance}
+            </div>
           </div>
         </div>
       </div>
@@ -146,11 +166,14 @@ const Reports: React.FC = () => {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
         <div className="bg-white p-4 sm:p-6 rounded-lg shadow-sm">
           <h3 className="text-lg sm:text-xl font-bold mb-4 flex items-center gap-2">
-            <PieChart className="text-blue-600" /> توزيع البرامج حسب النوع
+            <PieChart className="text-blue-600" /> {t('programs_by_type')}
           </h3>
           <div className="space-y-2">
             {programsByType.map(({ type, count }) => (
-              <div key={type} className="flex justify-between items-center text-sm sm:text-base">
+              <div
+                key={type}
+                className="flex justify-between items-center text-sm sm:text-base"
+              >
                 <span className="truncate">{type}</span>
                 <span className="font-bold">{count}</span>
               </div>
@@ -160,12 +183,17 @@ const Reports: React.FC = () => {
 
         <div className="bg-white p-4 sm:p-6 rounded-lg shadow-sm">
           <h3 className="text-lg sm:text-xl font-bold mb-4 flex items-center gap-2">
-            <BarChart className="text-green-600" /> توزيع الطلاب حسب الصف
+            <BarChart className="text-green-600" /> {t('students_by_grade')}
           </h3>
           <div className="space-y-2">
             {studentsByGrade.map(({ grade, count }) => (
-              <div key={grade} className="flex justify-between items-center text-sm sm:text-base">
-                <span>الصف {grade}</span>
+              <div
+                key={grade}
+                className="flex justify-between items-center text-sm sm:text-base"
+              >
+                <span>
+                  {t('grade_prefix')} {grade}
+                </span>
                 <span className="font-bold">{count}</span>
               </div>
             ))}

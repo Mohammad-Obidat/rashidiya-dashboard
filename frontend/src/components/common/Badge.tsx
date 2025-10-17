@@ -17,7 +17,7 @@ const Badge: React.FC<BadgeProps> = ({ label, colorClass, dotClass, icon }) => {
           className={`w-2 h-2 rounded-full ${dotClass} animate-pulse`}
         ></span>
       )}
-      {icon && <span className='px-1'>{icon}</span>}
+      {icon && <span className="px-1">{icon}</span>}
       {label}
     </div>
   );

@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { api } from '../lib/apiClient';
 import type {
   AttendanceRecord,
@@ -16,6 +17,7 @@ import ErrorState from '../components/ErrorState';
 import { useToast } from '../contexts/ToastContext';
 
 const Attendance: React.FC = () => {
+  const { t } = useTranslation();
   const toast = useToast();
   const [attendance, setAttendance] = useState<AttendanceRecord[]>([]);
   const [programs, setPrograms] = useState<Program[]>([]);
@@ -43,18 +45,18 @@ const Attendance: React.FC = () => {
         setStudents(studData);
         setSessions(sessData);
       } catch (err: any) {
-        setError(err.message || 'فشل في تحميل بيانات الحضور');
+        setError(err.message || t('dashboard_error'));
       } finally {
         setLoading(false);
       }
     };
     fetchData();
-  }, []);
+  }, [t]);
 
   const getStudentName = (studentId: string) =>
-    students.find((s) => s.id === studentId)?.name || 'غير معروف';
+    students.find((s) => s.id === studentId)?.name || t('not_assigned');
   const getProgramName = (programId: string) =>
-    programs.find((p) => p.id === programId)?.name || 'غير معروف';
+    programs.find((p) => p.id === programId)?.name || t('not_assigned');
 
   const filteredAttendance = useMemo(
     () =>
@@ -78,10 +80,10 @@ const Attendance: React.FC = () => {
       const filters: Record<string, any> = {};
       if (filterProgram !== 'all') filters.programId = filterProgram;
       if (filterDate) filters.date = filterDate;
-      await exportToXLSX('ATTENDANCE', filters, 'سجل_الحضور.xlsx');
-      toast.success('تم تصدير الملف بنجاح');
+      await exportToXLSX('ATTENDANCE', filters, t('export_attendance_xlsx'));
+      toast.success(t('export_success'));
     } catch {
-      toast.error('فشل في تصدير الملف');
+      toast.error(t('export_failed'));
     }
   };
 
@@ -90,10 +92,10 @@ const Attendance: React.FC = () => {
       const filters: Record<string, any> = {};
       if (filterProgram !== 'all') filters.programId = filterProgram;
       if (filterDate) filters.date = filterDate;
-      await exportToPDF('ATTENDANCE', filters, 'سجل_الحضور.pdf');
-      toast.success('تم تصدير الملف بنجاح');
+      await exportToPDF('ATTENDANCE', filters, t('export_attendance_pdf'));
+      toast.success(t('export_success'));
     } catch {
-      toast.error('فشل في تصدير الملف');
+      toast.error(t('export_failed'));
     }
   };
 
@@ -123,9 +125,9 @@ const Attendance: React.FC = () => {
 
       const created = await api.attendanceRecords.bulkCreate(attendanceRecords);
       setAttendance([...attendance, ...created]);
-      toast.success('تم تسجيل الحضور بنجاح');
+      toast.success(t('attendance_recorded_success'));
     } catch {
-      toast.error('فشل في تسجيل الحضور');
+      toast.error(t('attendance_record_failed'));
       throw new Error('Failed to save attendance');
     }
   };
@@ -134,33 +136,33 @@ const Attendance: React.FC = () => {
   if (error) return <ErrorState error={error} />;
 
   return (
-    <div className='p-4 sm:p-6 bg-gray-50 min-h-screen'>
+    <div className="p-4 sm:p-6 bg-gray-50 min-h-screen">
       {/* Header */}
-      <div className='flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-6'>
-        <h2 className='text-2xl sm:text-3xl font-bold text-gray-800'>
-          سجل الحضور والغياب
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-6">
+        <h2 className="text-2xl sm:text-3xl font-bold text-gray-800">
+          {t('attendance_title')}
         </h2>
-        <div className='flex flex-wrap gap-2 w-full sm:w-auto'>
+        <div className="flex flex-wrap gap-2 w-full sm:w-auto">
           <Button
             onClick={handleTakeAttendance}
-            variant='primary'
-            className='flex-1 sm:flex-none flex items-center justify-center gap-2'
+            variant="primary"
+            className="flex-1 sm:flex-none flex items-center justify-center gap-2"
           >
             <PlusCircle size={20} />
-            تسجيل حضور
+            {t('take_attendance')}
           </Button>
           <Button
             onClick={handleExportXLSX}
-            variant='secondary'
-            className='flex-1 sm:flex-none flex items-center justify-center gap-2'
+            variant="secondary"
+            className="flex-1 sm:flex-none flex items-center justify-center gap-2"
           >
             <FileDown size={18} />
             XLSX
           </Button>
           <Button
             onClick={handleExportPDF}
-            variant='secondary'
-            className='flex-1 sm:flex-none flex items-center justify-center gap-2'
+            variant="secondary"
+            className="flex-1 sm:flex-none flex items-center justify-center gap-2"
           >
             <FileDown size={18} />
             PDF
@@ -169,18 +171,18 @@ const Attendance: React.FC = () => {
       </div>
 
       {/* Filters */}
-      <div className='bg-white p-4 rounded-lg shadow-sm mb-6 grid grid-cols-1 sm:grid-cols-3 gap-4'>
+      <div className="bg-white p-4 rounded-lg shadow-sm mb-6 grid grid-cols-1 sm:grid-cols-3 gap-4">
         <div>
-          <label className='block text-sm font-medium text-gray-700 mb-1'>
-            فلترة حسب البرنامج
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            {t('filter_by_program')}
           </label>
-          <div className='relative'>
+          <div className="relative">
             <select
               value={filterProgram}
               onChange={(e) => setFilterProgram(e.target.value)}
-              className='w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500'
+              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
             >
-              <option value='all'>كل البرامج</option>
+              <option value="all">{t('all_programs')}</option>
               {programs.map((p) => (
                 <option key={p.id} value={p.id}>
                   {p.name}
@@ -189,24 +191,24 @@ const Attendance: React.FC = () => {
             </select>
             <ClipboardList
               size={20}
-              className='absolute left-3 top-1/2 -translate-y-1/2 text-gray-400'
+              className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
             />
           </div>
         </div>
         <div>
-          <label className='block text-sm font-medium text-gray-700 mb-1'>
-            فلترة حسب التاريخ
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            {t('filter_by_date')}
           </label>
-          <div className='relative'>
+          <div className="relative">
             <input
-              type='date'
+              type="date"
               value={filterDate}
               onChange={(e) => setFilterDate(e.target.value)}
-              className='w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500'
+              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
             />
             <Calendar
               size={20}
-              className='absolute left-3 top-1/2 -translate-y-1/2 text-gray-400'
+              className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
             />
           </div>
         </div>
@@ -215,40 +217,40 @@ const Attendance: React.FC = () => {
             setFilterProgram('all');
             setFilterDate('');
           }}
-          variant='secondary'
+          variant="secondary"
         >
-          إعادة تعيين
+          {t('reset_filters')}
         </Button>
       </div>
 
       {/* Table for large screens */}
-      <div className='hidden md:block bg-white rounded-lg shadow overflow-x-auto'>
-        <table className='w-full text-right'>
-          <thead className='bg-gray-100 text-gray-600 uppercase text-sm'>
+      <div className="hidden md:block bg-white rounded-lg shadow overflow-x-auto">
+        <table className="w-full text-right">
+          <thead className="bg-gray-100 text-gray-600 uppercase text-sm">
             <tr>
-              <th className='p-4'>البرنامج</th>
-              <th className='p-4'>الطالب</th>
-              <th className='p-4'>التاريخ</th>
-              <th className='p-4'>الحالة</th>
-              <th className='p-4'>ملاحظات</th>
+              <th className="p-4">{t('attendance_program')}</th>
+              <th className="p-4">{t('attendance_student_name')}</th>
+              <th className="p-4">{t('attendance_date')}</th>
+              <th className="p-4">{t('attendance_status')}</th>
+              <th className="p-4">{t('attendance_notes')}</th>
             </tr>
           </thead>
-          <tbody className='text-gray-700'>
+          <tbody className="text-gray-700">
             {filteredAttendance.map((record) => (
               <tr
                 key={record.id}
-                className='border-b border-gray-200 hover:bg-gray-50'
+                className="border-b border-gray-200 hover:bg-gray-50"
               >
-                <td className='p-4 font-medium'>
+                <td className="p-4 font-medium">
                   {getProgramName(record.programId)}
                 </td>
-                <td className='p-4'>{getStudentName(record.studentId)}</td>
-                <td className='p-4'>
+                <td className="p-4">{getStudentName(record.studentId)}</td>
+                <td className="p-4">
                   {record.date
                     ? new Date(record.date).toISOString().split('T')[0]
                     : ''}
                 </td>
-                <td className='p-4'>
+                <td className="p-4">
                   <span
                     className={`px-2 py-1 text-xs font-semibold rounded-full ${
                       getAttendanceConfig(record.status).color
@@ -257,27 +259,27 @@ const Attendance: React.FC = () => {
                     {getAttendanceConfig(record.status).label}
                   </span>
                 </td>
-                <td className='p-4'>{record.notes || '-'}</td>
+                <td className="p-4">{record.notes || '-'}</td>
               </tr>
             ))}
           </tbody>
         </table>
         {filteredAttendance.length === 0 && (
-          <div className='text-center p-8 text-gray-500'>
-            لا توجد سجلات حضور لعرضها.
+          <div className="text-center p-8 text-gray-500">
+            {t('no_attendance_records')}
           </div>
         )}
       </div>
 
       {/* Cards for small screens */}
-      <div className='md:hidden space-y-4'>
+      <div className="md:hidden space-y-4">
         {filteredAttendance.map((record) => (
           <div
             key={record.id}
-            className='bg-white rounded-lg shadow p-4 border border-gray-100'
+            className="bg-white rounded-lg shadow p-4 border border-gray-100"
           >
-            <div className='flex justify-between mb-2'>
-              <span className='font-semibold text-gray-800'>
+            <div className="flex justify-between mb-2">
+              <span className="font-semibold text-gray-800">
                 {getStudentName(record.studentId)}
               </span>
               <span
@@ -288,19 +290,20 @@ const Attendance: React.FC = () => {
                 {getAttendanceConfig(record.status).label}
               </span>
             </div>
-            <div className='text-sm text-gray-600'>
+            <div className="text-sm text-gray-600">
               <p>
-                <strong>البرنامج:</strong> {getProgramName(record.programId)}
+                <strong>{t('attendance_program')}:</strong>{' '}
+                {getProgramName(record.programId)}
               </p>
               <p>
-                <strong>التاريخ:</strong>{' '}
+                <strong>{t('attendance_date')}:</strong>{' '}
                 {record.date
                   ? new Date(record.date).toISOString().split('T')[0]
                   : ''}
               </p>
               {record.notes && (
                 <p>
-                  <strong>ملاحظات:</strong> {record.notes}
+                  <strong>{t('attendance_notes')}:</strong> {record.notes}
                 </p>
               )}
             </div>
@@ -308,8 +311,8 @@ const Attendance: React.FC = () => {
         ))}
 
         {filteredAttendance.length === 0 && (
-          <div className='text-center p-6 text-gray-500 bg-white rounded-lg shadow'>
-            لا توجد سجلات حضور لعرضها.
+          <div className="text-center p-6 text-gray-500 bg-white rounded-lg shadow">
+            {t('no_attendance_records')}
           </div>
         )}
       </div>

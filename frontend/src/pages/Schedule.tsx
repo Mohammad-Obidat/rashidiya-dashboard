@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { api } from '../lib/apiClient';
 import type { Session, Program } from '../types/program';
 import Button from '../components/common/Button';
@@ -12,6 +13,7 @@ import ErrorState from '../components/ErrorState';
 import { useToast } from '../contexts/ToastContext';
 
 const Schedule: React.FC = () => {
+  const { t, i18n } = useTranslation();
   const toast = useToast();
   const [sessions, setSessions] = useState<Session[]>([]);
   const [programs, setPrograms] = useState<Program[]>([]);
@@ -32,16 +34,16 @@ const Schedule: React.FC = () => {
         setSessions(sessData);
         setPrograms(progData);
       } catch (err: any) {
-        setError(err.message || 'فشل في تحميل الجدول الزمني');
+        setError(err.message || t('dashboard_error'));
       } finally {
         setLoading(false);
       }
     };
     fetchData();
-  }, []);
+  }, [t]);
 
   const getProgramName = (programId: string) =>
-    programs.find((p) => p.id === programId)?.name || 'غير معروف';
+    programs.find((p) => p.id === programId)?.name || t('not_assigned');
 
   const sessionsByDate = useMemo(() => {
     return sessions.reduce((acc, session) => {
@@ -54,19 +56,19 @@ const Schedule: React.FC = () => {
 
   const handleExportXLSX = async () => {
     try {
-      await exportToXLSX('SESSIONS', {}, 'الجدول_الزمني.xlsx');
-      toast.success('تم تصدير الملف بنجاح');
+      await exportToXLSX('SESSIONS', {}, t('export_schedules_xlsx'));
+      toast.success(t('export_success'));
     } catch {
-      toast.error('فشل في تصدير الملف');
+      toast.error(t('export_failed'));
     }
   };
 
   const handleExportPDF = async () => {
     try {
-      await exportToPDF('SESSIONS', {}, 'الجدول_الزمني.pdf');
-      toast.success('تم تصدير الملف بنجاح');
+      await exportToPDF('SESSIONS', {}, t('export_schedules_pdf'));
+      toast.success(t('export_success'));
     } catch {
-      toast.error('فشل في تصدير الملف');
+      toast.error(t('export_failed'));
     }
   };
 
@@ -96,7 +98,7 @@ const Schedule: React.FC = () => {
         setSessions(
           sessions.map((s) => (s.id === editingSession.id ? updated : s))
         );
-        toast.success('تم تحديث الجدول الزمني بنجاح');
+        toast.success(t('schedule_updated_success'));
       } else {
         const created = await api.sessions.create({
           programId: formData.programId,
@@ -109,10 +111,10 @@ const Schedule: React.FC = () => {
           notes: formData.notes || undefined,
         });
         setSessions([...sessions, created]);
-        toast.success('تم إضافة الجدول الزمني بنجاح');
+        toast.success(t('schedule_added_success'));
       }
     } catch {
-      toast.error('فشل في حفظ الجدول الزمني');
+      toast.error(t('schedule_save_failed'));
     }
   };
 
@@ -124,7 +126,7 @@ const Schedule: React.FC = () => {
       {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
         <h2 className="text-2xl sm:text-3xl font-bold text-gray-800">
-          الجدول الزمني للبرامج
+          {t('schedule_title')}
         </h2>
         <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
           <Button
@@ -133,7 +135,7 @@ const Schedule: React.FC = () => {
             className="flex items-center justify-center gap-2 w-full sm:w-auto"
           >
             <PlusCircle size={20} />
-            إضافة جدول جديد
+            {t('add_new_schedule')}
           </Button>
           <Button
             onClick={handleExportXLSX}
@@ -141,7 +143,7 @@ const Schedule: React.FC = () => {
             className="flex items-center justify-center gap-2 w-full sm:w-auto"
           >
             <FileDown size={18} />
-            تصدير XLSX
+            {t('export_report_xlsx')}
           </Button>
           <Button
             onClick={handleExportPDF}
@@ -149,58 +151,72 @@ const Schedule: React.FC = () => {
             className="flex items-center justify-center gap-2 w-full sm:w-auto"
           >
             <FileDown size={18} />
-            تصدير PDF
+            {t('export_report_pdf')}
           </Button>
         </div>
       </div>
 
       {/* Sessions List */}
       <div className="bg-white p-4 sm:p-6 rounded-lg shadow-sm">
-        {Object.entries(sessionsByDate).map(([date, dateSessions]) => (
-          <div key={date} className="mb-8">
-            <h3 className="text-lg sm:text-xl font-bold mb-4 border-b pb-2 text-gray-800">
-              {new Date(date).toLocaleDateString('ar-EG', {
-                weekday: 'long',
-                year: 'numeric',
-                month: 'long',
-                day: 'numeric',
-              })}
-            </h3>
+        {Object.entries(sessionsByDate).length > 0 ? (
+          Object.entries(sessionsByDate).map(([date, dateSessions]) => (
+            <div key={date} className="mb-8">
+              <h3 className="text-lg sm:text-xl font-bold mb-4 border-b pb-2 text-gray-800">
+                {new Date(date).toLocaleDateString(
+                  i18n.language === 'ar'
+                    ? 'ar-EG'
+                    : i18n.language === 'he'
+                    ? 'he-IL'
+                    : 'en-US',
+                  {
+                    weekday: 'long',
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric',
+                  }
+                )}
+              </h3>
 
-            <div className="space-y-4">
-              {dateSessions.map((session) => (
-                <div
-                  key={session.id}
-                  className="p-4 border rounded-lg hover:bg-gray-50 flex flex-col-2 sm:flex-row justify-between sm:items-start gap-3 transition-all"
-                >
-                  <div className="flex items-center justify-between">
-                    <div className="flex-l">
-                    <h4 className="font-bold text-base sm:text-lg text-gray-800 break-words">
-                      {getProgramName(session.programId)}
-                    </h4>
+              <div className="space-y-4">
+                {dateSessions.map((session) => (
+                  <div
+                    key={session.id}
+                    className="p-4 border rounded-lg hover:bg-gray-50 flex flex-col-2 sm:flex-row justify-between sm:items-start gap-3 transition-all"
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex-l">
+                        <h4 className="font-bold text-base sm:text-lg text-gray-800 break-words">
+                          {getProgramName(session.programId)}
+                        </h4>
 
-                    <div className="flex flex-col sm:flex-row sm:items-center sm:gap-4 text-gray-600 mt-2 text-sm sm:text-base">
-                      <div className="flex items-center gap-2">
-                        <Clock size={16} /> {session.startTime} - {session.endTime}
-                      </div>
-                      <div className="flex items-center gap-2 mt-1 sm:mt-0">
-                        <MapPin size={16} /> {session.location}
-                      </div>
-                    </div>
+                        <div className="flex flex-col sm:flex-row sm:items-center sm:gap-4 text-gray-600 mt-2 text-sm sm:text-base">
+                          <div className="flex items-center gap-2">
+                            <Clock size={16} /> {session.startTime} -{' '}
+                            {session.endTime}
+                          </div>
+                          <div className="flex items-center gap-2 mt-1 sm:mt-0">
+                            <MapPin size={16} /> {session.location}
+                          </div>
                         </div>
                       </div>
-                        <Button
-                          onClick={() => handleEditSchedule(session)}
-                          variant="secondary"
-                          className="h-9 w-9 flex items-center justify-center"
-                        >
-                          <Edit size={20} />
-                        </Button>
-                </div>
-              ))}
+                    </div>
+                    <Button
+                      onClick={() => handleEditSchedule(session)}
+                      variant="secondary"
+                      className="h-9 w-9 flex items-center justify-center"
+                    >
+                      <Edit size={20} />
+                    </Button>
+                  </div>
+                ))}
+              </div>
             </div>
+          ))
+        ) : (
+          <div className="text-center p-8 text-gray-500">
+            {t('no_attendance_records')}
           </div>
-        ))}
+        )}
       </div>
 
       {/* Modal */}

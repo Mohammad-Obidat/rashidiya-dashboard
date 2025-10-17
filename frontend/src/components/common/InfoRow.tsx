@@ -18,7 +18,7 @@ const InfoRow: React.FC<InfoRowProps> = ({
   iconClassName = 'w-4 h-4 text-blue-500 flex-shrink-0',
 }) => {
   return (
-    <div className='flex items-center gap-2 text-gray-600'>
+    <div className="flex items-center gap-2 text-gray-600">
       {React.cloneElement(icon, {
         className: `${icon.props.className || ''} ${iconClassName}`,
       })}
