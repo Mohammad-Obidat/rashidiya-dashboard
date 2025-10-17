@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import Button from '../components/common/Button';
-import { ArrowRight, Save, X } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Save, X } from 'lucide-react';
 import { ProgramTypeEnum, ProgramStatus } from '../types/program';
 import useProgramForm from '../hooks/useProgramForm';
 import useProgramData from '../hooks/useProgramData';
@@ -97,17 +97,23 @@ const AddEditProgram: React.FC = () => {
         <div className="mb-4 sm:mb-6 md:mb-8">
           <button
             onClick={handleCancel}
-            className={`flex items-center gap-2 text-gray-600 hover:text-gray-900 mb-3 sm:mb-4 transition-colors duration-200 cursor-pointer touch-manipulation ${
-              isRtl ? 'flex-row-reverse' : ''
-            }`}
+            className={`flex items-center gap-2 text-gray-600 hover:text-gray-900 mb-3 sm:mb-4 transition-colors duration-200 cursor-pointer touch-manipulation`}
             aria-label={t('back_to_list')}
           >
-            <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5" />
+            {isRtl ? (
+              <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5" />
+            ) : (
+              <ArrowLeft className="w-4 h-4 sm:w-5 sm:h-5" />
+            )}
             <span className="text-sm sm:text-base">{t('back_to_list')}</span>
           </button>
 
           <div className="bg-white rounded-lg sm:rounded-xl shadow-lg p-4 sm:p-5 md:p-6 border border-gray-100">
-            <h1 className="text-xl sm:text-2xl md:text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-1 sm:mb-2 pb-1 sm:pb-2 text-right">
+            <h1
+              className={`text-xl sm:text-2xl md:text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-1 sm:mb-2 pb-1 sm:pb-2 ${
+                isRtl ? 'text-right' : 'text-left'
+              } `}
+            >
               {isEditMode ? t('edit_program') : t('add_new_program')}
             </h1>
             <p
