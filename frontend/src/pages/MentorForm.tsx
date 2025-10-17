@@ -5,7 +5,7 @@ import { api } from '../lib/apiClient';
 import type { CreateAdvisorDto, UpdateAdvisorDto } from '../types/program';
 import Button from '../components/common/Button';
 import Input from '../components/common/Input';
-import { Save, ArrowRight, UserPlus, Edit } from 'lucide-react';
+import { Save, ArrowRight, UserPlus, Edit, ArrowLeft } from 'lucide-react';
 import LoadingState from '../components/LoadingState';
 import ErrorState from '../components/ErrorState';
 import { useToast } from '../contexts/ToastContext';
@@ -14,7 +14,7 @@ const MentorForm: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const toast = useToast();
-  const { t } = useTranslation();
+  const { i18n, t } = useTranslation();
   const isEditMode = !!id;
 
   const [formData, setFormData] = useState<CreateAdvisorDto | UpdateAdvisorDto>(
@@ -89,7 +89,11 @@ const MentorForm: React.FC = () => {
           variant="secondary"
           className="h-9 w-9 sm:h-10 sm:w-10 p-0 flex items-center justify-center flex-shrink-0"
         >
-          <ArrowRight size={18} className="sm:w-5 sm:h-5" />
+          {i18n.language === 'en' ? (
+            <ArrowLeft size={18} className="sm:w-5 sm:h-5" />
+          ) : (
+            <ArrowRight size={18} className="sm:w-5 sm:h-5" />
+          )}
         </Button>
         <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-800 flex items-center gap-2 flex-wrap">
           {isEditMode ? (

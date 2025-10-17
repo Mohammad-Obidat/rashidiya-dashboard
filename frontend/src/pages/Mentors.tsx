@@ -204,7 +204,7 @@ const Mentors: React.FC = () => {
 
       {/* Desktop Table View */}
       <div className="hidden md:block bg-white rounded-lg shadow overflow-x-auto">
-        <table className="w-full text-right">
+        <table className="w-full text-center">
           <thead className="bg-gray-100 text-gray-600 uppercase text-sm">
             <tr>
               <th className="p-3 lg:p-4">{t('mentor_name')}</th>
