@@ -14,6 +14,7 @@ import {
   Calendar,
   ClipboardCheck,
   Info,
+  ArrowLeft,
 } from 'lucide-react';
 import LoadingState from '../components/LoadingState';
 import ErrorState from '../components/ErrorState';
@@ -233,7 +234,7 @@ const ProgramAttendanceTab: React.FC<ProgramTabProps> = ({
                       getAttendanceConfig(a.status).color
                     }`}
                   >
-                    {getAttendanceConfig(a.status).label}
+                    {t(`attendanceType.${a.status}`)}
                   </span>
                 </td>
               </tr>
@@ -302,16 +303,18 @@ const ProgramDetails: React.FC = () => {
   return (
     <div className="p-4 sm:p-6 bg-gray-50 min-h-screen">
       <div
-        className={`flex items-start sm:items-center gap-3 sm:gap-4 mb-4 sm:mb-6 ${
-          isRtl ? 'flex-row-reverse' : ''
-        }`}
+        className={`flex items-start sm:items-center gap-3 sm:gap-4 mb-4 sm:mb-6`}
       >
         <Button
           onClick={() => navigate('/programs')}
           variant="secondary"
           className="h-9 w-9 sm:h-10 sm:w-10 p-0 flex items-center justify-center flex-shrink-0"
         >
-          <ArrowRight size={18} className="sm:w-5 sm:h-5" />
+          {isRtl ? (
+            <ArrowRight size={18} className="sm:w-5 sm:h-5" />
+          ) : (
+            <ArrowLeft size={18} className="sm:w-5 sm:h-5" />
+          )}
         </Button>
         <div className="flex-1 min-w-0">
           <h2
@@ -329,12 +332,13 @@ const ProgramDetails: React.FC = () => {
             <span
               className={`px-2 sm:px-3 py-1 text-xs sm:text-sm font-semibold rounded-full ${programType?.color}`}
             >
-              {programType?.label}
+              {t(`type.${program.type}`)}
             </span>
+
             <span
               className={`px-2 sm:px-3 py-1 text-xs sm:text-sm font-semibold rounded-full ${programStatus?.badge}`}
             >
-              {programStatus?.label}
+              {t(`status.${program.status}`)}
             </span>
           </div>
         </div>
@@ -343,9 +347,7 @@ const ProgramDetails: React.FC = () => {
       <div className="bg-white rounded-lg shadow-md overflow-hidden">
         <div className="border-b border-gray-200 overflow-x-auto">
           <nav
-            className={`flex gap-2 sm:gap-6 px-4 sm:px-6 min-w-max sm:min-w-0 ${
-              isRtl ? 'flex-row-reverse' : ''
-            }`}
+            className={`flex gap-2 sm:gap-6 px-4 sm:px-6 min-w-max sm:min-w-0`}
           >
             <button
               onClick={() => setActiveTab('info')}
