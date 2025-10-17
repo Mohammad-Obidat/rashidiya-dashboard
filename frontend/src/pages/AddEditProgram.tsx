@@ -9,6 +9,7 @@ import useProgramData from '../hooks/useProgramData';
 import useProgramSubmission from '../hooks/useProgramSubmission';
 import LoadingState from '../components/LoadingState';
 import ErrorState from '../components/ErrorState';
+import { getStatusConfig, getTypeConfig } from '../config/programConfig';
 
 const AddEditProgram: React.FC = () => {
   const navigate = useNavigate();
@@ -69,6 +70,24 @@ const AddEditProgram: React.FC = () => {
   if (loading) return <LoadingState />;
   if (error || submissionError)
     return <ErrorState error={error || submissionError || ''} />;
+
+  const translatedTypes = Object.values(ProgramTypeEnum).map((type) => {
+    const config = getTypeConfig(type);
+    return {
+      value: type,
+      label: t(`type.${type}`),
+      icon: config.icon,
+    };
+  });
+
+  const translatedStatuses = Object.values(ProgramStatus).map((status) => {
+    const config = getStatusConfig(status);
+    return {
+      value: status,
+      label: t(`status.${status}`),
+      icon: config.icon,
+    };
+  });
 
   const isRtl = i18n.language === 'ar' || i18n.language === 'he';
 
@@ -156,9 +175,9 @@ const AddEditProgram: React.FC = () => {
                   isRtl ? 'text-right' : 'text-left'
                 }`}
               >
-                {Object.values(ProgramTypeEnum).map((type) => (
-                  <option key={type} value={type}>
-                    {type}
+                {translatedTypes.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.icon} {option.label}
                   </option>
                 ))}
               </select>
@@ -214,9 +233,9 @@ const AddEditProgram: React.FC = () => {
                   isRtl ? 'text-right' : 'text-left'
                 }`}
               >
-                {Object.values(ProgramStatus).map((status) => (
-                  <option key={status} value={status}>
-                    {status}
+                {translatedStatuses.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.icon} {option.label}
                   </option>
                 ))}
               </select>
