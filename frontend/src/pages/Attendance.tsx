@@ -330,7 +330,7 @@ const Attendance: React.FC = () => {
                       getAttendanceConfig(record.status).color
                     }`}
                   >
-                    {getAttendanceConfig(record.status).label}
+                    <span>{t(`attendanceType.${record.status}`)}</span>
                   </span>
                 </td>
                 <td className="p-4">{record.notes || '-'}</td>

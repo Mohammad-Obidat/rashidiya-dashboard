@@ -144,7 +144,7 @@ const Header: React.FC = () => {
         isScrolled ? 'shadow-xl' : ''
       }`}
     >
-      <div className="container px-2 sm:px-4 lg:px-2">
+      <div className="container mx-auto px-2 sm:px-4 lg:px-2">
         <div className="flex items-center justify-between py-2.5 sm:py-3 gap-2 sm:gap-4">
           {/* Logo + Title */}
           <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0 min-w-0">
