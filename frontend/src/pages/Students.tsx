@@ -331,7 +331,6 @@ const Students: React.FC = () => {
           <div
             key={student.id}
             className="bg-white rounded-lg shadow-sm p-4 space-y-3"
-            // dir={isRTL ? 'rtl' : 'ltr'}
           >
             <div className="flex items-start justify-between">
               <div className="flex-1 min-w-0">
@@ -349,7 +348,7 @@ const Students: React.FC = () => {
                     <span className="font-medium">
                       {t('student_grade_section_short')}:
                     </span>{' '}
-                    {student.grade} / {t(`section.${student.section}`)}
+                    {student.grade} / {getSectionLabel(student.section)}
                   </p>
                   <p className="text-sm text-gray-600">
                     <span className="font-medium">{t('student_gender')}:</span>{' '}
@@ -378,7 +377,11 @@ const Students: React.FC = () => {
                       className="fixed inset-0 z-10"
                       onClick={() => setOpenMenuId(null)}
                     />
-                    <div className="absolute left-0 mt-1 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-20">
+                    <div
+                      className={`absolute ${
+                        isRTL ? 'left-0' : 'right-0'
+                      } mt-1 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-20`}
+                    >
                       <button
                         onClick={() => handleAssignClick(student.id)}
                         className="w-full text-right px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"

@@ -263,7 +263,7 @@ const ProgramAttendanceTab: React.FC<ProgramTabProps> = ({
                     getAttendanceConfig(a.status).color
                   }`}
                 >
-                  {getAttendanceConfig(a.status).label}
+                  {t(`attendanceType.${a.status}`)}
                 </span>
               </div>
             </div>
