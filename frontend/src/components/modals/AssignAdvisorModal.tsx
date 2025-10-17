@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import Modal from '../common/Modal';
 import Button from '../common/Button';
 import type { Program } from '../../types/program';
@@ -16,6 +17,7 @@ const AssignAdvisorModal: React.FC<AssignAdvisorModalProps> = ({
   onAssign,
   programs,
 }) => {
+  const { t } = useTranslation();
   const [selectedProgram, setSelectedProgram] = useState<string>('');
   const [isAssigning, setIsAssigning] = useState(false);
 
@@ -29,6 +31,7 @@ const AssignAdvisorModal: React.FC<AssignAdvisorModalProps> = ({
       onClose();
     } catch (error) {
       // Error handling is done in parent component
+      console.error(error);
     } finally {
       setIsAssigning(false);
     }
@@ -43,37 +46,37 @@ const AssignAdvisorModal: React.FC<AssignAdvisorModalProps> = ({
     <Modal
       isOpen={isOpen}
       onClose={handleClose}
-      title='تعيين مشرف إلى برنامج'
+      title={t('assign_advisor_to_program_title')}
       footer={
         <>
           <Button
-            variant='secondary'
+            variant="secondary"
             onClick={handleClose}
             disabled={isAssigning}
           >
-            إلغاء
+            {t('form_cancel')}
           </Button>
           <Button
-            variant='primary'
+            variant="primary"
             onClick={handleAssign}
             disabled={isAssigning || !selectedProgram}
           >
-            {isAssigning ? 'جاري التعيين...' : 'تعيين'}
+            {isAssigning ? t('assigning') : t('assign_button')}
           </Button>
         </>
       }
     >
-      <div className='space-y-4'>
+      <div className="space-y-4">
         <div>
-          <label className='block text-sm font-medium text-gray-700 mb-2'>
-            اختر البرنامج
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            {t('select_program')}
           </label>
           <select
             value={selectedProgram}
             onChange={(e) => setSelectedProgram(e.target.value)}
-            className='w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500'
+            className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
-            <option value=''>-- اختر برنامج --</option>
+            <option value="">{t('select_program_option')}</option>
             {programs.map((program) => (
               <option key={program.id} value={program.id}>
                 {program.name}

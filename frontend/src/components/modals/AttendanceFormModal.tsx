@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import Modal from '../common/Modal';
 import Button from '../common/Button';
 import type {
@@ -33,6 +34,7 @@ const AttendanceFormModal: React.FC<AttendanceFormModalProps> = ({
   students,
   onLoadStudents,
 }) => {
+  const { t, i18n } = useTranslation();
   const [selectedProgram, setSelectedProgram] = useState<string>('');
   const [selectedSession, setSelectedSession] = useState<string>('');
   const [attendanceRecords, setAttendanceRecords] = useState<
@@ -81,7 +83,8 @@ const AttendanceFormModal: React.FC<AttendanceFormModalProps> = ({
         }))
       );
     } catch (error) {
-      setValidationError('فشل في تحميل قائمة الطلاب');
+      setValidationError(t('load_students_failed'));
+      console.error(error);
     }
   };
 
@@ -99,7 +102,7 @@ const AttendanceFormModal: React.FC<AttendanceFormModalProps> = ({
 
   const handleSave = async () => {
     if (!selectedSession || attendanceRecords.length === 0) {
-      setValidationError('يرجى اختيار جلسة وتعبئة بيانات الحضور');
+      setValidationError(t('attendance_validation_error'));
       return;
     }
 
@@ -110,6 +113,7 @@ const AttendanceFormModal: React.FC<AttendanceFormModalProps> = ({
       onClose();
     } catch (error) {
       // Error handling is done in parent component
+      console.error(error);
     } finally {
       setIsSaving(false);
     }
@@ -124,7 +128,7 @@ const AttendanceFormModal: React.FC<AttendanceFormModalProps> = ({
   };
 
   const getStudentName = (studentId: string) => {
-    return students.find((s) => s.id === studentId)?.name || 'غير معروف';
+    return students.find((s) => s.id === studentId)?.name || t('not_assigned');
   };
 
   const filteredSessions = sessions.filter(
@@ -135,39 +139,39 @@ const AttendanceFormModal: React.FC<AttendanceFormModalProps> = ({
     <Modal
       isOpen={isOpen}
       onClose={handleClose}
-      title='تسجيل حضور الطلاب'
+      title={t('record_attendance_title')}
       footer={
         <>
-          <Button variant='secondary' onClick={handleClose} disabled={isSaving}>
-            إلغاء
+          <Button variant="secondary" onClick={handleClose} disabled={isSaving}>
+            {t('form_cancel')}
           </Button>
           <Button
-            variant='primary'
+            variant="primary"
             onClick={handleSave}
             disabled={isSaving || attendanceRecords.length === 0}
           >
-            {isSaving ? 'جاري الحفظ...' : 'حفظ'}
+            {isSaving ? t('form_saving') : t('save')}
           </Button>
         </>
       }
     >
-      <div className='space-y-4'>
+      <div className="space-y-4">
         {validationError && (
-          <div className='p-3 bg-red-50 border border-red-200 rounded-md text-red-700 text-sm'>
+          <div className="p-3 bg-red-50 border border-red-200 rounded-md text-red-700 text-sm">
             {validationError}
           </div>
         )}
 
         <div>
-          <label className='block text-sm font-medium text-gray-700 mb-2'>
-            البرنامج *
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            {t('program_required')}
           </label>
           <select
             value={selectedProgram}
             onChange={(e) => handleProgramChange(e.target.value)}
-            className='w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500'
+            className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
-            <option value=''>-- اختر برنامج --</option>
+            <option value="">{t('select_program_option')}</option>
             {programs.map((program) => (
               <option key={program.id} value={program.id}>
                 {program.name}
@@ -178,19 +182,25 @@ const AttendanceFormModal: React.FC<AttendanceFormModalProps> = ({
 
         {selectedProgram && (
           <div>
-            <label className='block text-sm font-medium text-gray-700 mb-2'>
-              الجلسة *
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              {t('session_required')}
             </label>
             <select
               value={selectedSession}
               onChange={(e) => handleSessionChange(e.target.value)}
-              className='w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500'
+              className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
-              <option value=''>-- اختر جلسة --</option>
+              <option value="">{t('select_session_option')}</option>
               {filteredSessions.map((session) => (
                 <option key={session.id} value={session.id}>
-                  {new Date(session.date).toLocaleDateString('ar-EG')} -{' '}
-                  {session.startTime} إلى {session.endTime}
+                  {new Date(session.date).toLocaleDateString(
+                    i18n.language === 'ar'
+                      ? 'ar-EG'
+                      : i18n.language === 'he'
+                      ? 'he-IL'
+                      : 'en-US'
+                  )}{' '}
+                  - {session.startTime} {t('to')} {session.endTime}
                 </option>
               ))}
             </select>
@@ -199,25 +209,31 @@ const AttendanceFormModal: React.FC<AttendanceFormModalProps> = ({
 
         {attendanceRecords.length > 0 && (
           <div>
-            <label className='block text-sm font-medium text-gray-700 mb-2'>
-              قائمة الطلاب
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              {t('students_list')}
             </label>
-            <div className='max-h-96 overflow-y-auto border border-gray-300 rounded-md'>
-              <table className='w-full'>
-                <thead className='bg-gray-100 sticky top-0'>
+            <div className="max-h-96 overflow-y-auto border border-gray-300 rounded-md">
+              <table className="w-full">
+                <thead className="bg-gray-100 sticky top-0">
                   <tr>
-                    <th className='p-2 text-right text-sm'>الطالب</th>
-                    <th className='p-2 text-right text-sm'>الحالة</th>
-                    <th className='p-2 text-right text-sm'>ملاحظات</th>
+                    <th className="p-2 text-right text-sm">
+                      {t('student_name')}
+                    </th>
+                    <th className="p-2 text-right text-sm">
+                      {t('attendance_status')}
+                    </th>
+                    <th className="p-2 text-right text-sm">
+                      {t('attendance_notes')}
+                    </th>
                   </tr>
                 </thead>
                 <tbody>
                   {attendanceRecords.map((record) => (
-                    <tr key={record.studentId} className='border-b'>
-                      <td className='p-2 text-sm'>
+                    <tr key={record.studentId} className="border-b">
+                      <td className="p-2 text-sm">
                         {getStudentName(record.studentId)}
                       </td>
-                      <td className='p-2'>
+                      <td className="p-2">
                         <select
                           value={record.status}
                           onChange={(e) =>
@@ -227,17 +243,23 @@ const AttendanceFormModal: React.FC<AttendanceFormModalProps> = ({
                               e.target.value
                             )
                           }
-                          className='w-full px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500'
+                          className="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
                         >
-                          <option value='PRESENT'>حاضر</option>
-                          <option value='ABSENT'>غائب</option>
-                          <option value='EXCUSED'>غياب بعذر</option>
-                          <option value='LATE'>متأخر</option>
+                          <option value="PRESENT">
+                            {t('attendance_present')}
+                          </option>
+                          <option value="ABSENT">
+                            {t('attendance_absent')}
+                          </option>
+                          <option value="EXCUSED">
+                            {t('attendance_excused')}
+                          </option>
+                          <option value="LATE">{t('attendance_late')}</option>
                         </select>
                       </td>
-                      <td className='p-2'>
+                      <td className="p-2">
                         <input
-                          type='text'
+                          type="text"
                           value={record.notes}
                           onChange={(e) =>
                             handleAttendanceChange(
@@ -246,8 +268,8 @@ const AttendanceFormModal: React.FC<AttendanceFormModalProps> = ({
                               e.target.value
                             )
                           }
-                          className='w-full px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500'
-                          placeholder='ملاحظات'
+                          className="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
+                          placeholder={t('notes_placeholder')}
                         />
                       </td>
                     </tr>

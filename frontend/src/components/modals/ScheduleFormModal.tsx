@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import Modal from '../common/Modal';
 import Button from '../common/Button';
 import type { Program, Session, RecurrencePattern } from '../../types/program';
@@ -29,6 +30,7 @@ const ScheduleFormModal: React.FC<ScheduleFormModalProps> = ({
   programs,
   editingSession,
 }) => {
+  const { t } = useTranslation();
   const [formData, setFormData] = useState<ScheduleFormData>({
     programId: '',
     date: '',
@@ -80,7 +82,7 @@ const ScheduleFormModal: React.FC<ScheduleFormModalProps> = ({
       !formData.endTime ||
       !formData.location
     ) {
-      setValidationError('يرجى ملء جميع الحقول المطلوبة');
+      setValidationError(t('schedule_validation_error'));
       return;
     }
 
@@ -91,7 +93,7 @@ const ScheduleFormModal: React.FC<ScheduleFormModalProps> = ({
       onClose();
     } catch (error) {
       // Error handling is done in parent component
-      console.error(error)
+      console.error(error);
     } finally {
       setIsSaving(false);
     }
@@ -116,37 +118,39 @@ const ScheduleFormModal: React.FC<ScheduleFormModalProps> = ({
     <Modal
       isOpen={isOpen}
       onClose={handleClose}
-      title={editingSession ? 'تعديل الجدول الزمني' : 'إضافة جدول زمني جديد'}
+      title={
+        editingSession ? t('edit_schedule_title') : t('add_schedule_title')
+      }
       footer={
         <>
-          <Button variant='secondary' onClick={handleClose} disabled={isSaving}>
-            إلغاء
+          <Button variant="secondary" onClick={handleClose} disabled={isSaving}>
+            {t('form_cancel')}
           </Button>
-          <Button variant='primary' onClick={handleSave} disabled={isSaving}>
-            {isSaving ? 'جاري الحفظ...' : 'حفظ'}
+          <Button variant="primary" onClick={handleSave} disabled={isSaving}>
+            {isSaving ? t('form_saving') : t('save')}
           </Button>
         </>
       }
     >
-      <div className='space-y-4'>
+      <div className="space-y-4">
         {validationError && (
-          <div className='p-3 bg-red-50 border border-red-200 rounded-md text-red-700 text-sm'>
+          <div className="p-3 bg-red-50 border border-red-200 rounded-md text-red-700 text-sm">
             {validationError}
           </div>
         )}
 
         <div>
-          <label className='block text-sm font-medium text-gray-700 mb-2'>
-            البرنامج *
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            {t('program_required')}
           </label>
           <select
             value={formData.programId}
             onChange={(e) =>
               setFormData({ ...formData, programId: e.target.value })
             }
-            className='w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500'
+            className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
-            <option value=''>-- اختر برنامج --</option>
+            <option value="">{t('select_program_option')}</option>
             {programs.map((program) => (
               <option key={program.id} value={program.id}>
                 {program.name}
@@ -156,81 +160,81 @@ const ScheduleFormModal: React.FC<ScheduleFormModalProps> = ({
         </div>
 
         <div>
-          <label className='block text-sm font-medium text-gray-700 mb-2'>
-            التاريخ *
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            {t('date_required')}
           </label>
           <input
-            type='date'
+            type="date"
             value={formData.date}
             onChange={(e) => setFormData({ ...formData, date: e.target.value })}
-            className='w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500'
+            className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
         </div>
 
-        <div className='grid grid-cols-2 gap-4'>
+        <div className="grid grid-cols-2 gap-4">
           <div>
-            <label className='block text-sm font-medium text-gray-700 mb-2'>
-              وقت البدء *
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              {t('start_time_required')}
             </label>
             <input
-              type='time'
+              type="time"
               value={formData.startTime}
               onChange={(e) =>
                 setFormData({ ...formData, startTime: e.target.value })
               }
-              className='w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500'
+              className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
           <div>
-            <label className='block text-sm font-medium text-gray-700 mb-2'>
-              وقت الانتهاء *
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              {t('end_time_required')}
             </label>
             <input
-              type='time'
+              type="time"
               value={formData.endTime}
               onChange={(e) =>
                 setFormData({ ...formData, endTime: e.target.value })
               }
-              className='w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500'
+              className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
         </div>
 
         <div>
-          <label className='block text-sm font-medium text-gray-700 mb-2'>
-            الموقع *
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            {t('location_required')}
           </label>
           <input
-            type='text'
+            type="text"
             value={formData.location}
             onChange={(e) =>
               setFormData({ ...formData, location: e.target.value })
             }
-            className='w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500'
-            placeholder='أدخل الموقع'
+            className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            placeholder={t('location_placeholder')}
           />
         </div>
 
         <div>
-          <label className='flex items-center gap-2'>
+          <label className="flex items-center gap-2">
             <input
-              type='checkbox'
+              type="checkbox"
               checked={formData.isRecurring}
               onChange={(e) =>
                 setFormData({ ...formData, isRecurring: e.target.checked })
               }
-              className='w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500'
+              className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
             />
-            <span className='text-sm font-medium text-gray-700'>
-              جدول متكرر
+            <span className="text-sm font-medium text-gray-700">
+              {t('recurring_schedule')}
             </span>
           </label>
         </div>
 
         {formData.isRecurring && (
           <div>
-            <label className='block text-sm font-medium text-gray-700 mb-2'>
-              نمط التكرار
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              {t('recurrence_pattern')}
             </label>
             <select
               value={formData.recurrencePattern}
@@ -240,28 +244,28 @@ const ScheduleFormModal: React.FC<ScheduleFormModalProps> = ({
                   recurrencePattern: e.target.value as RecurrencePattern,
                 })
               }
-              className='w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500'
+              className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
-              <option value=''>-- اختر نمط التكرار --</option>
-              <option value='DAILY'>يومي</option>
-              <option value='WEEKLY'>أسبوعي</option>
-              <option value='MONTHLY'>شهري</option>
+              <option value="">{t('select_recurrence_option')}</option>
+              <option value="DAILY">{t('daily')}</option>
+              <option value="WEEKLY">{t('weekly')}</option>
+              <option value="MONTHLY">{t('monthly')}</option>
             </select>
           </div>
         )}
 
         <div>
-          <label className='block text-sm font-medium text-gray-700 mb-2'>
-            ملاحظات
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            {t('notes')}
           </label>
           <textarea
             value={formData.notes}
             onChange={(e) =>
               setFormData({ ...formData, notes: e.target.value })
             }
-            className='w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500'
+            className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             rows={3}
-            placeholder='أدخل ملاحظات إضافية'
+            placeholder={t('notes_placeholder')}
           />
         </div>
       </div>
