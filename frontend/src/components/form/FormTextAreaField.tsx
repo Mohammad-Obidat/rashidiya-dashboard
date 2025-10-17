@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 
 interface FormTextAreaFieldProps {
   label: string;
@@ -12,7 +13,7 @@ interface FormTextAreaFieldProps {
   showCharCount?: boolean;
 }
 
-const FormTextAreaField: React.FC<FormTextAreaFieldProps> = ({
+export const FormTextAreaField: React.FC<FormTextAreaFieldProps> = ({
   label,
   value,
   onChange,
@@ -23,10 +24,12 @@ const FormTextAreaField: React.FC<FormTextAreaFieldProps> = ({
   rows = 4,
   showCharCount = true,
 }) => {
+  const { t } = useTranslation();
+
   return (
     <div>
-      <label className='block text-sm font-medium text-gray-700 mb-2'>
-        {label} {required && <span className='text-red-500'>*</span>}
+      <label className="block text-sm font-medium text-gray-700 mb-2">
+        {label} {required && <span className="text-red-500">*</span>}
       </label>
       <textarea
         value={value}
@@ -40,11 +43,13 @@ const FormTextAreaField: React.FC<FormTextAreaFieldProps> = ({
         placeholder={placeholder}
         disabled={disabled}
       />
-      <div className='flex justify-between items-center mt-1'>
+      <div className="flex justify-between items-center mt-1">
         {error ? (
-          <p className='text-sm text-red-600'>{error}</p>
+          <p className="text-sm text-red-600">{error}</p>
         ) : showCharCount ? (
-          <p className='text-sm text-gray-500'>{value.length} حرف</p>
+          <p className="text-sm text-gray-500">
+            {t('character_count', { count: value.length })}
+          </p>
         ) : (
           <div />
         )}
