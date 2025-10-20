@@ -375,7 +375,7 @@ const Attendance: React.FC = () => {
                   getAttendanceConfig(record.status).color
                 }`}
               >
-                {getAttendanceConfig(record.status).label}
+                {t(`attendanceType.${record.status}`)}
               </span>
             </div>
             <div className="text-sm text-gray-600 mb-3">
@@ -395,19 +395,23 @@ const Attendance: React.FC = () => {
                 </p>
               )}
             </div>
-            <div className="flex gap-2">
-              <button
+            <div className="flex justify-end gap-2">
+              <Button
                 onClick={() => handleEditAttendance(record)}
-                className="flex-1 text-blue-600 hover:bg-blue-50 py-1 rounded text-sm font-medium"
+                variant="secondary"
+                className="h-9 w-9 flex items-center justify-center"
+                title={t('edit_button')}
               >
-                {t('edit')}
-              </button>
-              <button
+                <Edit size={20} />
+              </Button>
+              <Button
                 onClick={() => handleDeleteAttendance(record.id)}
-                className="flex-1 text-red-600 hover:bg-red-50 py-1 rounded text-sm font-medium"
+                variant="danger"
+                className="h-9 w-9 flex items-center justify-center"
+                title={t('delete_button')}
               >
-                {t('delete')}
-              </button>
+                <Trash2 size={20} />
+              </Button>
             </div>
           </div>
         ))}

@@ -28,6 +28,7 @@ interface ProgramTabProps {
   attendance: any[];
   advisor: any;
   t: any;
+  getSectionLabel: any;
   isRtl: boolean;
 }
 
@@ -68,6 +69,7 @@ const ProgramInfoTab: React.FC<ProgramTabProps> = ({
 const ProgramStudentsTab: React.FC<ProgramTabProps> = ({
   students,
   t,
+  getSectionLabel,
   isRtl,
 }) => (
   <div className="overflow-x-auto -mx-6 sm:mx-0">
@@ -92,7 +94,7 @@ const ProgramStudentsTab: React.FC<ProgramTabProps> = ({
                 <td className="p-3 lg:p-4">{s.name}</td>
                 <td className="p-3 lg:p-4">{s.studentNumber}</td>
                 <td className="p-3 lg:p-4">
-                  {s.grade} / {s.section}
+                  {s.grade} / {getSectionLabel(s.section)}
                 </td>
               </tr>
             ))}
@@ -116,7 +118,7 @@ const ProgramStudentsTab: React.FC<ProgramTabProps> = ({
                 <span className="font-medium">
                   {t('student_grade_section')}:
                 </span>{' '}
-                {s.grade} / {s.section}
+                {s.grade} / {getSectionLabel(s.section)}
               </div>
             </div>
           ))}
@@ -300,6 +302,27 @@ const ProgramDetails: React.FC = () => {
       </div>
     );
 
+  const getSectionLabel = (section: string) => {
+    const sectionMap: { [key: string]: string } = {
+      A: 'A',
+      أ: 'A',
+      B: 'B',
+      ب: 'B',
+      C: 'C',
+      ج: 'C',
+      D: 'D',
+      د: 'D',
+      E: 'E',
+      ه: 'E',
+      F: 'F',
+      و: 'F',
+      G: 'G',
+      ز: 'G',
+    };
+    const englishSection = sectionMap[section] || section;
+    return t(`section.${englishSection}`);
+  };
+
   return (
     <div className="p-4 sm:p-6 bg-gray-50 min-h-screen">
       <div
@@ -346,9 +369,7 @@ const ProgramDetails: React.FC = () => {
 
       <div className="bg-white rounded-lg shadow-md overflow-hidden">
         <div className="border-b border-gray-200 overflow-x-auto">
-          <nav
-            className={`flex gap-2 sm:gap-6 px-4 sm:px-6 min-w-max sm:min-w-0`}
-          >
+          <nav className="flex justify-between gap-2 sm:gap-6 px-4 sm:px-6 min-w-max sm:min-w-0 md:justify-normal lg:justify-normal xl:justify-normal">
             <button
               onClick={() => setActiveTab('info')}
               className={`py-3 sm:py-4 px-1 border-b-2 cursor-pointer whitespace-nowrap text-sm sm:text-base flex items-center gap-1 sm:gap-2 ${
@@ -404,6 +425,7 @@ const ProgramDetails: React.FC = () => {
               attendance={attendance}
               advisor={advisor}
               t={t}
+              getSectionLabel
               isRtl={isRtl}
             />
           )}
@@ -415,6 +437,7 @@ const ProgramDetails: React.FC = () => {
               attendance={attendance}
               advisor={advisor}
               t={t}
+              getSectionLabel={getSectionLabel}
               isRtl={isRtl}
             />
           )}
@@ -426,6 +449,7 @@ const ProgramDetails: React.FC = () => {
               attendance={attendance}
               advisor={advisor}
               t={t}
+              getSectionLabel
               isRtl={isRtl}
             />
           )}
@@ -437,6 +461,7 @@ const ProgramDetails: React.FC = () => {
               attendance={attendance}
               advisor={advisor}
               t={t}
+              getSectionLabel
               isRtl={isRtl}
             />
           )}

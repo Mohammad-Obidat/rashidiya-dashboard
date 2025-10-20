@@ -24,7 +24,7 @@ import { useToast } from '../contexts/ToastContext';
 const Mentors: React.FC = () => {
   const navigate = useNavigate();
   const toast = useToast();
-  const { t } = useTranslation();
+  const { i18n, t } = useTranslation();
   const [mentors, setMentors] = useState<Advisor[]>([]);
   const [programs, setPrograms] = useState<Program[]>([]);
   const [loading, setLoading] = useState(true);
@@ -36,6 +36,8 @@ const Mentors: React.FC = () => {
   const [assignModalOpen, setAssignModalOpen] = useState(false);
   const [selectedAdvisor, setSelectedAdvisor] = useState<string | null>(null);
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
+
+  const isRTL = i18n.language === 'ar' || i18n.language === 'he';
 
   useEffect(() => {
     const fetchData = async () => {
@@ -291,7 +293,11 @@ const Mentors: React.FC = () => {
                       className="fixed inset-0 z-10"
                       onClick={() => setOpenMenuId(null)}
                     />
-                    <div className="absolute left-0 mt-1 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-20">
+                    <div
+                      className={`absolute  ${
+                        isRTL ? 'left-0' : 'right-0'
+                      } mt-1 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-20`}
+                    >
                       <button
                         onClick={() => handleAssignClick(mentor.id)}
                         className="w-full text-right px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"
