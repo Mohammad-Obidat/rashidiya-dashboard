@@ -1,23 +1,21 @@
-# Backend (NestJS + Prisma)
-FROM node:18-alpine
+FROM node:20-alpine
 
-# Set working directory
 WORKDIR /app
 
-# Copy package.json first (for better caching)
+# Copy package.json first
 COPY package*.json ./
 
-# Install dependencies
+# Copy prisma folder **before** npm install
+COPY prisma ./prisma
+
+# Install dependencies (postinstall will now find schema)
 RUN npm install
 
 # Copy rest of the source code
 COPY . .
 
-# Generate Prisma client
-RUN npx prisma generate
+# Build NestJS
+RUN npm run build
 
-# Expose NestJS port
-EXPOSE 3000
-
-# Start in dev mode
-CMD ["npm", "run", "start"]
+# Start the server
+CMD ["node", "dist/main.js"]
