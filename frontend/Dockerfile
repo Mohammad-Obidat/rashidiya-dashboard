@@ -1,20 +1,32 @@
-# Frontend (React + Vite)
-FROM node:18-alpine
+# Use Node 20 LTS (matches backend)
+FROM node:20-alpine AS builder
 
 # Set working directory
 WORKDIR /app
 
-# Copy package.json first
+# Copy package.json and package-lock.json
 COPY package*.json ./
 
 # Install dependencies
 RUN npm install
 
-# Copy rest of the frontend code
+# Copy all source files
 COPY . .
 
-# Expose Vite dev port
-EXPOSE 5173
+# Build the app
+RUN npm run build
 
-# Run Vite dev server
-CMD ["npm", "run", "dev", "--", "--host", "0.0.0.0"]
+# Production image
+FROM nginx:alpine
+
+# Copy build output to Nginx public folder
+COPY --from=builder /app/dist /usr/share/nginx/html
+
+# Copy custom Nginx config if needed (optional)
+# COPY nginx.conf /etc/nginx/conf.d/default.conf
+
+# Expose HTTP port
+EXPOSE 80
+
+# Start Nginx
+CMD ["nginx", "-g", "daemon off;"]
