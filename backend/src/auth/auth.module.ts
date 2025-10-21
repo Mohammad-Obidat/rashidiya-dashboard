@@ -6,8 +6,7 @@ import { AuthController } from './auth.controller';
 import { JwtStrategy } from './strategies/jwt.strategy';
 import { PrismaModule } from '../prisma/prisma.module';
 
-const jwtSecret =
-  process.env.JWT_SECRET || 'your-secret-key-change-in-production';
+const jwtSecret = process.env.JWT_SECRET;
 
 @Module({
   imports: [
