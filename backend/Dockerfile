@@ -2,20 +2,22 @@ FROM node:20-alpine
 
 WORKDIR /app
 
-# Copy package.json first
+# Copy package.json & prisma folder
 COPY package*.json ./
-
-# Copy prisma folder **before** npm install
 COPY prisma ./prisma
 
-# Install dependencies (postinstall will now find schema)
+# Set DB environment variable for Prisma generate
+ARG DATABASE_URL
+ENV DATABASE_URL=$DATABASE_URL
+
+# Install deps & generate Prisma client
 RUN npm install
 
-# Copy rest of the source code
+# Copy rest of source code
 COPY . .
 
 # Build NestJS
 RUN npm run build
 
-# Start the server
-CMD ["node", "dist/main.js"]
+# Run migrations on container start, then start server
+CMD npx prisma migrate deploy && node dist/main.js
