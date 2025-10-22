@@ -69,6 +69,14 @@ const resources = {
         'Manage and monitor all extracurricular programs ({{count}} programs)',
       add_new_program_button: '+ Add New Program',
 
+      emptyState: {
+        noMatchingPrograms: 'No programs match your search',
+        noPrograms: 'No programs available',
+        tryAdjustFilters: 'Try changing your search or filter criteria',
+        startByAdding: 'Start by adding a new program',
+        addNewProgram: '+ Add New Program',
+      },
+
       // Program Card
       no_description: 'No description',
       creation_date_label: 'Creation Date',
@@ -445,6 +453,14 @@ const resources = {
         'إدارة ومتابعة جميع البرامج اللامنهجية ({{count}} برنامج)',
       add_new_program_button: '+ إضافة برنامج جديد',
 
+      emptyState: {
+        noMatchingPrograms: 'لا توجد برامج مطابقة للبحث',
+        noPrograms: 'لا توجد برامج متاحة',
+        tryAdjustFilters: 'جرب تغيير معايير البحث أو الفلترة',
+        startByAdding: 'ابدأ بإضافة برنامج جديد',
+        addNewProgram: '+ إضافة برنامج جديد',
+      },
+
       // Program Card
       no_description: 'لا يوجد وصف',
       creation_date_label: 'تاريخ الإنشاء',
@@ -818,6 +834,14 @@ const resources = {
       dashboard_subtitle_plural:
         'נהל וקבע עקוב אחר כל התוכניות החוץ-לימודיות ({{count}} תוכניות)',
       add_new_program_button: '+ הוסף תוכנית חדשה',
+
+      emptyState: {
+        noMatchingPrograms: 'אין תוכניות שתואמות לחיפוש',
+        noPrograms: 'אין תוכניות זמינות',
+        tryAdjustFilters: 'נסה לשנות את החיפוש או את מסנני הסינון',
+        startByAdding: 'התחל בהוספת תוכנית חדשה',
+        addNewProgram: '+ הוסף תוכנית חדשה',
+      },
 
       // Program Card
       no_description: 'אין תיאור',
