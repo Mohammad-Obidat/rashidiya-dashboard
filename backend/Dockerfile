@@ -1,27 +1,18 @@
-FROM node:20-alpine
-
+# Stage 1: Build
+FROM node:20 AS build
 WORKDIR /app
-
-# Copy package.json & prisma folder
 COPY package*.json ./
-COPY prisma ./prisma
-
-# Set DB environment variable for Prisma generate
-ARG DATABASE_URL
-ENV DATABASE_URL=$DATABASE_URL
-
-# Install deps & generate Prisma client
-RUN npm install
-
-# Copy rest of source code
+RUN npm ci
 COPY . .
-
-# Build NestJS
 RUN npm run build
 
-# Run migrations on container start, then start server
-CMD npx prisma generate
-CMD npx prisma migrate deploy
-CMD node dist/main.js
+# Stage 2: Production
+FROM node:20-alpine
+WORKDIR /app
+COPY --from=build /app ./
+ENV NODE_ENV=production
+# Run Prisma generate so client is ready
+RUN npx prisma generate
 
-RUN npm run start
+# Start command – run migrations then start the app
+CMD npx prisma migrate deploy && node dist/main.js
