@@ -4,14 +4,28 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>مدرسة الرشيدية | Rashidya School</title>
-    <!-- <meta name="apple-mobile-web-app-capable" content="yes" /> -->
-    <!-- <meta name="apple-mobile-web-app-status-bar-style" content="black" /> -->
-    <!-- <link rel="manifest" href="/manifest.json" /> -->
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+    <link rel="manifest" href="/manifest.webmanifest" />
     <link rel="rashidya logo" href="/favicon.ico" type="image/x-icon" />
     <link href="/src/index.css" rel="stylesheet" />
   </head>
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
+    <script>
+      if (
+        'serviceWorker' in navigator &&
+        (window.location.protocol === 'https:' ||
+          window.location.hostname === 'localhost')
+      ) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker
+            .register('/sw.js')
+            .then((reg) => console.log('SW registered:', reg))
+            .catch((err) => console.error('SW registration failed:', err));
+        });
+      }
+    </script>
   </body>
 </html>
