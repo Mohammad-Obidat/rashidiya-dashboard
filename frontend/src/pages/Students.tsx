@@ -1,12 +1,12 @@
-import React, { useEffect, useState, useMemo } from 'react';
-import { useTranslation } from 'react-i18next';
-import { useNavigate } from 'react-router-dom';
-import { api } from '../lib/apiClient';
-import type { Student, Program } from '../types/program';
-import Button from '../components/common/Button';
-import Input from '../components/common/Input';
-import Modal from '../components/common/Modal';
-import AssignStudentModal from '../components/modals/AssignStudentModal';
+import React, { useEffect, useState, useMemo, useCallback } from "react";
+import { useTranslation } from "react-i18next";
+import { useNavigate } from "react-router-dom";
+import { api } from "../lib/apiClient";
+import type { Student, Program } from "../types/program";
+import Button from "../components/common/Button";
+import Input from "../components/common/Input";
+import Modal from "../components/common/Modal";
+import AssignStudentModal from "../components/modals/AssignStudentModal";
 import {
   PlusCircle,
   Search,
@@ -15,11 +15,13 @@ import {
   Edit,
   UserPlus,
   MoreVertical,
-} from 'lucide-react';
-import { exportToXLSX, exportToPDF } from '../lib/exportUtils';
-import LoadingState from '../components/LoadingState';
-import ErrorState from '../components/ErrorState';
-import { useToast } from '../contexts/ToastContext';
+} from "lucide-react";
+import { exportToXLSX, exportToPDF } from "../lib/exportUtils";
+import { ExcelExportButton } from "../components/common/ExcelExportButton";
+import { ExcelImportForm } from "../components/common/ExcelImportForm";
+import LoadingState from "../components/LoadingState";
+import ErrorState from "../components/ErrorState";
+import { useToast } from "../contexts/ToastContext";
 
 const Students: React.FC = () => {
   const { t, i18n } = useTranslation();
@@ -29,7 +31,7 @@ const Students: React.FC = () => {
   const [programs, setPrograms] = useState<Program[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [searchTerm, setSearchTerm] = useState('');
+  const [searchTerm, setSearchTerm] = useState("");
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [studentToDelete, setStudentToDelete] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -37,32 +39,38 @@ const Students: React.FC = () => {
   const [selectedStudent, setSelectedStudent] = useState<string | null>(null);
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
 
-  const isRTL = i18n.language === 'ar' || i18n.language === 'he';
+  const isRTL = i18n.language === "ar" || i18n.language === "he";
+
+  const fetchData = useCallback(async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const [studentsData, programsData] = await Promise.all([
+        api.students.list(),
+        api.programs.list(),
+      ]);
+      setStudents(studentsData);
+      setPrograms(programsData);
+    } catch (err: any) {
+      setError(err.message || t("dashboard_error"));
+    } finally {
+      setLoading(false);
+    }
+  }, [t]);
 
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        setLoading(true);
-        setError(null);
-        const [studentsData, programsData] = await Promise.all([
-          api.students.list(),
-          api.programs.list(),
-        ]);
-        setStudents(studentsData);
-        setPrograms(programsData);
-      } catch (err: any) {
-        setError(err.message || t('dashboard_error'));
-      } finally {
-        setLoading(false);
-      }
-    };
     fetchData();
-  }, [t]);
+  }, [fetchData]);
+
+  const handleImportSuccess = () => {
+    // Re-fetch data after successful import
+    fetchData();
+  };
 
   const filteredStudents = useMemo(
     () =>
       students.filter(
-        (student) =>
+        student =>
           student.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
           student.studentNumber.includes(searchTerm)
       ),
@@ -80,12 +88,12 @@ const Students: React.FC = () => {
     setIsDeleting(true);
     try {
       await api.students.remove(studentToDelete);
-      setStudents(students.filter((s) => s.id !== studentToDelete));
+      setStudents(students.filter(s => s.id !== studentToDelete));
       setDeleteModalOpen(false);
       setStudentToDelete(null);
-      toast.success(t('student_deleted_success'));
+      toast.success(t("student_deleted_success"));
     } catch (err: any) {
-      toast.error(t('student_delete_failed'));
+      toast.error(t("student_delete_failed"));
     } finally {
       setIsDeleting(false);
     }
@@ -107,37 +115,37 @@ const Students: React.FC = () => {
         joinDate: new Date().toISOString(),
       });
 
-      toast.success(t('student_assigned_success'));
+      toast.success(t("student_assigned_success"));
       setSelectedStudent(null);
     } catch (err: any) {
-      toast.error(t('student_assign_failed'));
+      toast.error(t("student_assign_failed"));
       throw err;
     }
   };
 
-  const handleExportXLSX = async () => {
-    try {
-      const fileName = t('export_attendance_xlsx').replace(
-        'Attendance',
-        'Students'
-      );
-      await exportToXLSX('STUDENTS', {}, fileName);
-      toast.success(t('export_success'));
-    } catch (err: any) {
-      toast.error(t('export_failed'));
-    }
-  };
+  // const handleExportXLSX = async () => {
+  //   try {
+  //     const fileName = t("export_attendance_xlsx").replace(
+  //       "Attendance",
+  //       "Students"
+  //     );
+  //     await exportToXLSX("STUDENTS", {}, fileName);
+  //     toast.success(t("export_success"));
+  //   } catch (err: any) {
+  //     toast.error(t("export_failed"));
+  //   }
+  // };
 
   const handleExportPDF = async () => {
     try {
-      const fileName = t('export_attendance_pdf').replace(
-        'Attendance',
-        'Students'
+      const fileName = t("export_attendance_pdf").replace(
+        "Attendance",
+        "Students"
       );
-      await exportToPDF('STUDENTS', {}, fileName);
-      toast.success(t('export_success'));
+      await exportToPDF("STUDENTS", {}, fileName);
+      toast.success(t("export_success"));
     } catch (err: any) {
-      toast.error(t('export_failed'));
+      toast.error(t("export_failed"));
     }
   };
 
@@ -147,37 +155,37 @@ const Students: React.FC = () => {
 
   const getGenderLabel = (gender: string | null) => {
     const genderMap: { [key: string]: string } = {
-      MALE: 'MALE',
-      FEMALE: 'FEMALE',
+      MALE: "MALE",
+      FEMALE: "FEMALE",
     };
-    const key = genderMap[gender || ''] || gender;
-    return key ? t(`gender.${key}`) : '';
+    const key = genderMap[gender || ""] || gender;
+    return key ? t(`gender.${key}`) : "";
   };
 
   const getSectionLabel = (section: string) => {
     const sectionMap: { [key: string]: string } = {
-      A: 'A',
-      أ: 'A',
-      B: 'B',
-      ب: 'B',
-      C: 'C',
-      ج: 'C',
-      D: 'D',
-      د: 'D',
-      E: 'E',
-      ه: 'E',
-      F: 'F',
-      و: 'F',
-      G: 'G',
-      ز: 'G',
+      A: "A",
+      أ: "A",
+      B: "B",
+      ب: "B",
+      C: "C",
+      ج: "C",
+      D: "D",
+      د: "D",
+      E: "E",
+      ه: "E",
+      F: "F",
+      و: "F",
+      G: "G",
+      ز: "G",
     };
     const englishSection = sectionMap[section] || section;
     return t(`section.${englishSection}`);
   };
 
   const formatBirthDate = (date: string | null) => {
-    if (!date) return '';
-    return new Date(date).toISOString().split('T')[0];
+    if (!date) return "";
+    return new Date(date).toISOString().split("T")[0];
   };
 
   if (loading) return <LoadingState />;
@@ -190,16 +198,27 @@ const Students: React.FC = () => {
         className={`flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 sm:gap-4 mb-4 sm:mb-6`}
       >
         <h2 className="text-2xl sm:text-3xl font-bold text-gray-800">
-          {t('students_list_title')}
+          {t("students_list_title")}
         </h2>
-        <Button
-          onClick={() => navigate('/students/new')}
-          variant="primary"
-          className="flex items-center justify-center gap-2 w-full sm:w-auto"
-        >
-          <PlusCircle size={18} className="sm:w-5 sm:h-5" />
-          <span className="text-sm sm:text-base">{t('add_new_student')}</span>
-        </Button>
+        <div>
+          <div className="mb-4 flex flex-row space-x-2 p-4">
+            <ExcelImportForm
+              endpoint="students"
+              // label={t("import_students_from_excel")}
+              onImportSuccess={handleImportSuccess}
+            />
+            <Button
+              onClick={() => navigate("/students/new")}
+              variant="primary"
+              className="flex items-center justify-center gap-2 w-full sm:w-auto"
+            >
+              <PlusCircle size={18} className="sm:w-5 sm:h-5" />
+              <span className="text-sm sm:text-base">
+                {t("add_new_student")}
+              </span>
+            </Button>
+          </div>
+        </div>
       </div>
 
       {/* Search and Export Section */}
@@ -207,39 +226,32 @@ const Students: React.FC = () => {
         className={`bg-white p-3 sm:p-4 rounded-lg shadow-sm mb-4 sm:mb-6 space-y-3 sm:space-y-0 sm:flex sm:justify-between sm:items-center`}
       >
         <div
-          className={`relative w-full sm:max-w-md ${isRTL ? 'sm:ml-auto' : ''}`}
+          className={`relative w-full sm:max-w-md ${isRTL ? "sm:ml-auto" : ""}`}
         >
           <Input
             value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            placeholder={t('search_students_placeholder')}
+            onChange={e => setSearchTerm(e.target.value)}
+            placeholder={t("search_students_placeholder")}
             className={`pl-10 text-sm sm:text-base ${
-              isRTL ? 'pr-10 pl-3' : ''
+              isRTL ? "pr-10 pl-3" : ""
             }`}
           />
           <Search
             size={18}
             className={`absolute top-1/2 -translate-y-1/2 text-gray-400 sm:w-5 sm:h-5 ${
-              isRTL ? 'right-3' : 'left-3'
+              isRTL ? "right-3" : "left-3"
             }`}
           />
         </div>
         <div className={`flex gap-2`}>
-          <Button
-            onClick={handleExportXLSX}
-            variant="secondary"
-            className="flex items-center justify-center gap-1 sm:gap-2 flex-1 sm:flex-initial text-xs sm:text-sm"
-          >
-            <FileDown size={16} className="sm:w-[18px] sm:h-[18px]" />
-            <span className="hidden xs:inline">{t('export_xlsx')}</span> XLSX
-          </Button>
+          <ExcelExportButton endpoint="students" label={t("export_excel")} />
           <Button
             onClick={handleExportPDF}
             variant="secondary"
             className="flex items-center justify-center gap-1 sm:gap-2 flex-1 sm:flex-initial text-xs sm:text-sm"
           >
             <FileDown size={16} className="sm:w-[18px] sm:h-[18px]" />
-            <span className="hidden xs:inline">{t('export_pdf')}</span> PDF
+            <span className="hidden xs:inline">{t("export_pdf")}</span> PDF
           </Button>
         </div>
       </div>
@@ -250,23 +262,23 @@ const Students: React.FC = () => {
           <thead className="bg-gray-100 text-gray-600 uppercase text-sm">
             <tr>
               <th className="p-3 lg:p-4 text-center">
-                {t('student_full_name')}
+                {t("student_full_name")}
               </th>
               <th className="p-3 lg:p-4 text-center">
-                {t('student_academic_number')}
+                {t("student_academic_number")}
               </th>
               <th className="p-3 lg:p-4 text-center">
-                {t('student_grade_section_short')}
+                {t("student_grade_section_short")}
               </th>
-              <th className="p-3 lg:p-4 text-center">{t('student_gender')}</th>
+              <th className="p-3 lg:p-4 text-center">{t("student_gender")}</th>
               <th className="p-3 lg:p-4 text-center">
-                {t('student_birth_date')}
+                {t("student_birth_date")}
               </th>
-              <th className="p-3 lg:p-4 text-center">{t('actions')}</th>
+              <th className="p-3 lg:p-4 text-center">{t("actions")}</th>
             </tr>
           </thead>
           <tbody className="text-gray-700">
-            {filteredStudents.map((student) => (
+            {filteredStudents.map(student => (
               <tr
                 key={student.id}
                 className="border-b border-gray-200 hover:bg-gray-50"
@@ -292,7 +304,7 @@ const Students: React.FC = () => {
                       onClick={() => handleAssignClick(student.id)}
                       variant="primary"
                       className="h-8 w-8 p-0 flex items-center justify-center"
-                      title={t('assign_to_program_action')}
+                      title={t("assign_to_program_action")}
                     >
                       <UserPlus size={16} />
                     </Button>
@@ -300,7 +312,7 @@ const Students: React.FC = () => {
                       onClick={() => navigate(`/students/edit/${student.id}`)}
                       variant="secondary"
                       className="h-8 w-8 p-0 flex items-center justify-center"
-                      title={t('edit_button')}
+                      title={t("edit_button")}
                     >
                       <Edit size={16} />
                     </Button>
@@ -308,7 +320,7 @@ const Students: React.FC = () => {
                       onClick={() => handleDeleteClick(student.id)}
                       variant="danger"
                       className="h-8 w-8 p-0 flex items-center justify-center"
-                      title={t('delete_button')}
+                      title={t("delete_button")}
                     >
                       <Trash2 size={16} />
                     </Button>
@@ -320,14 +332,14 @@ const Students: React.FC = () => {
         </table>
         {filteredStudents.length === 0 && (
           <div className="text-center p-8 text-gray-500">
-            {t('no_students_found')}
+            {t("no_students_found")}
           </div>
         )}
       </div>
 
       {/* Mobile/Tablet Card View */}
       <div className="lg:hidden space-y-3">
-        {filteredStudents.map((student) => (
+        {filteredStudents.map(student => (
           <div
             key={student.id}
             className="bg-white rounded-lg shadow-sm p-4 space-y-3"
@@ -340,25 +352,25 @@ const Students: React.FC = () => {
                 <div className="mt-2 space-y-1.5">
                   <p className="text-sm text-gray-600">
                     <span className="font-medium">
-                      {t('student_academic_number')}:
-                    </span>{' '}
+                      {t("student_academic_number")}:
+                    </span>{" "}
                     {student.studentNumber}
                   </p>
                   <p className="text-sm text-gray-600">
                     <span className="font-medium">
-                      {t('student_grade_section_short')}:
-                    </span>{' '}
+                      {t("student_grade_section_short")}:
+                    </span>{" "}
                     {student.grade} / {getSectionLabel(student.section)}
                   </p>
                   <p className="text-sm text-gray-600">
-                    <span className="font-medium">{t('student_gender')}:</span>{' '}
+                    <span className="font-medium">{t("student_gender")}:</span>{" "}
                     {getGenderLabel(student.gender)}
                   </p>
                   {student.birthDate && (
                     <p className="text-sm text-gray-600">
                       <span className="font-medium">
-                        {t('student_birth_date')}:
-                      </span>{' '}
+                        {t("student_birth_date")}:
+                      </span>{" "}
                       {formatBirthDate(student.birthDate)}
                     </p>
                   )}
@@ -379,7 +391,7 @@ const Students: React.FC = () => {
                     />
                     <div
                       className={`absolute ${
-                        isRTL ? 'left-0' : 'right-0'
+                        isRTL ? "left-0" : "right-0"
                       } mt-1 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-20`}
                     >
                       <button
@@ -387,7 +399,7 @@ const Students: React.FC = () => {
                         className="w-full text-right px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"
                       >
                         <UserPlus size={16} />
-                        {t('assign_to_program_action')}
+                        {t("assign_to_program_action")}
                       </button>
                       <button
                         onClick={() => {
@@ -397,14 +409,14 @@ const Students: React.FC = () => {
                         className="w-full text-right px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"
                       >
                         <Edit size={16} />
-                        {t('edit_button')}
+                        {t("edit_button")}
                       </button>
                       <button
                         onClick={() => handleDeleteClick(student.id)}
                         className="w-full text-right px-4 py-2 text-sm text-red-600 hover:bg-red-50 flex items-center gap-2"
                       >
                         <Trash2 size={16} />
-                        {t('delete_button')}
+                        {t("delete_button")}
                       </button>
                     </div>
                   </>
@@ -415,7 +427,7 @@ const Students: React.FC = () => {
         ))}
         {filteredStudents.length === 0 && (
           <div className="bg-white rounded-lg shadow-sm p-8 text-center text-gray-500">
-            {t('no_students_found')}
+            {t("no_students_found")}
           </div>
         )}
       </div>
@@ -424,7 +436,7 @@ const Students: React.FC = () => {
       <Modal
         isOpen={deleteModalOpen}
         onClose={() => setDeleteModalOpen(false)}
-        title={t('delete_student_title')}
+        title={t("delete_student_title")}
         footer={
           <>
             <Button
@@ -433,7 +445,7 @@ const Students: React.FC = () => {
               disabled={isDeleting}
               className="text-sm sm:text-base"
             >
-              {t('form_cancel')}
+              {t("form_cancel")}
             </Button>
             <Button
               variant="danger"
@@ -441,12 +453,12 @@ const Students: React.FC = () => {
               disabled={isDeleting}
               className="text-sm sm:text-base"
             >
-              {isDeleting ? t('deleting') : t('delete_button')}
+              {isDeleting ? t("deleting") : t("delete_button")}
             </Button>
           </>
         }
       >
-        <p className="text-sm sm:text-base">{t('delete_student_message')}</p>
+        <p className="text-sm sm:text-base">{t("delete_student_message")}</p>
       </Modal>
 
       {/* Assign Student Modal */}
