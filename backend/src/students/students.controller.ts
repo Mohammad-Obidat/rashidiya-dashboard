@@ -6,7 +6,12 @@ import {
   Delete,
   Param,
   Body,
+  BadRequestException,
+  UploadedFile,
+  UseInterceptors,
 } from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
+
 import { StudentsService } from './students.service';
 import { CreateStudentDto } from './dto/create-student.dto';
 import { UpdateStudentDto } from './dto/update-student.dto';
@@ -14,6 +19,17 @@ import { UpdateStudentDto } from './dto/update-student.dto';
 @Controller('students')
 export class StudentsController {
   constructor(private readonly studentsService: StudentsService) {}
+
+  @Post('import')
+  @UseInterceptors(FileInterceptor('file'))
+  async importStudents(@UploadedFile() file: Express.Multer.File | undefined) {
+    if (!file) {
+      throw new BadRequestException('No file uploaded.');
+    }
+    return this.studentsService.importStudents(
+      file.buffer as Buffer<ArrayBufferLike>,
+    );
+  }
 
   @Get()
   list() {
