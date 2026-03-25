@@ -17,7 +17,6 @@ import {
   MoreVertical,
 } from "lucide-react";
 import { exportToXLSX, exportToPDF } from "../lib/exportUtils";
-import { ExcelExportButton } from "../components/common/ExcelExportButton";
 import { ExcelImportForm } from "../components/common/ExcelImportForm";
 import LoadingState from "../components/LoadingState";
 import ErrorState from "../components/ErrorState";
@@ -123,18 +122,18 @@ const Students: React.FC = () => {
     }
   };
 
-  // const handleExportXLSX = async () => {
-  //   try {
-  //     const fileName = t("export_attendance_xlsx").replace(
-  //       "Attendance",
-  //       "Students"
-  //     );
-  //     await exportToXLSX("STUDENTS", {}, fileName);
-  //     toast.success(t("export_success"));
-  //   } catch (err: any) {
-  //     toast.error(t("export_failed"));
-  //   }
-  // };
+  const handleExportXLSX = async () => {
+    try {
+      const fileName = t("export_attendance_xlsx").replace(
+        "Attendance",
+        "Students"
+      );
+      await exportToXLSX("STUDENTS", {}, fileName);
+      toast.success(t("export_success"));
+    } catch (err: any) {
+      toast.error(t("export_failed"));
+    }
+  };
 
   const handleExportPDF = async () => {
     try {
@@ -204,7 +203,6 @@ const Students: React.FC = () => {
           <div className="mb-4 flex flex-row space-x-2 p-4">
             <ExcelImportForm
               endpoint="students"
-              // label={t("import_students_from_excel")}
               onImportSuccess={handleImportSuccess}
             />
             <Button
@@ -244,7 +242,14 @@ const Students: React.FC = () => {
           />
         </div>
         <div className={`flex gap-2`}>
-          <ExcelExportButton endpoint="students" label={t("export_excel")} />
+          <Button
+            onClick={handleExportXLSX}
+            variant="secondary"
+            className="flex items-center justify-center gap-1 sm:gap-2 flex-1 sm:flex-initial text-xs sm:text-sm"
+          >
+            <FileDown size={16} className="sm:w-[18px] sm:h-[18px]" />
+            <span className="hidden xs:inline">{t("export_excel")}</span> XLSX
+          </Button>
           <Button
             onClick={handleExportPDF}
             variant="secondary"
