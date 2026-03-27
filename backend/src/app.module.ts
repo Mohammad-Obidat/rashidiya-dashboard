@@ -9,6 +9,7 @@ import { AdvisorAssignmentsModule } from './advisor-assignments/advisor-assignme
 import { StudentProgramsModule } from './student-programs/student-programs.module';
 import { ExportModule } from './export/export.module';
 import { AuthModule } from './auth/auth.module';
+import { ExcelModule } from './excel/excel.module';
 
 @Module({
   imports: [
@@ -22,6 +23,7 @@ import { AuthModule } from './auth/auth.module';
     AttendanceRecordModule,
     AdvisorAssignmentsModule,
     ExportModule,
+    ExcelModule,
   ],
   controllers: [],
   providers: [],
