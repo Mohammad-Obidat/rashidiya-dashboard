@@ -224,6 +224,7 @@ const resources = {
       // Students Page
       students_list_title: "Students List",
       add_new_student: "Add New Student",
+      Upload_Import: "Upload & Import",
       search_students_placeholder: "Search by name or student number...",
       student_full_name: "Full Name",
       student_academic_number: "Academic Number",
@@ -630,6 +631,7 @@ const resources = {
       // Student Form
       edit_student_title: "تعديل بيانات طالب",
       add_student_title: "إضافة طالب جديد",
+      Upload_Import: "التحميل & الاستيراد",
       student_name_label: "الاسم الكامل",
       student_number_label: "الرقم الأكاديمي",
       student_grade_label: "الصف",
@@ -988,6 +990,7 @@ const resources = {
       // Students Page
       students_list_title: "רשימת סטודנטים",
       add_new_student: "הוסף סטודנט חדש",
+      Upload_Import: "העלאה וייבוא",
       search_students_placeholder: "חפש לפי שם או מספר סטודנט...",
       student_full_name: "שם מלא",
       student_academic_number: "מספר אקדמי",
